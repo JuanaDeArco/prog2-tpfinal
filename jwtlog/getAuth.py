@@ -1,7 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import jwt #pip install pyjwt https://pyjwt.readthedocs.io/en/stable/
 from usuario import Usuario
+from GatronomicUser import UsuarioGastronomico
+from PersonalUser import UsuarioPersonal
 import csv
+import os
 
 app = Flask(__name__)
 
@@ -79,39 +82,54 @@ def cant_usuarios(archivo):
     with open(archivo, 'r') as f:
         return len(f.readlines())
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(current_dir, 'usuarios.txt')
+
 @app.route('/create_user', methods=['POST'])
 def crear_usuario():
     '''Crea un usuario nuevo y lo agrega al archivo de texto donde por ahora tenemos todos los usuarios.
-    Esto mas adelante va a ser una base de datos.
+    Esto más adelante va a ser una base de datos.
     Restricciones:
     - Todos los campos tienen que ser completados
-    - La contraseña tiene que tener minimo 6 carcteres
+    - La contraseña tiene que tener mínimo 6 caracteres
     - Para que el mail sea válido, tiene que tener un @ en algún lado
-    - Se pueden repetir mails y contraseñas, pero no usuarios'''
-    username = request.headers.get("usuario")
-    password = request.headers.get("password") # ojo, se esta guardando en texto plano
-    email = request.headers.get("email")
-    if username == '' or password == '' or email == '':
+    - No se pueden repetir usuarios ni emails'''
+    username = request.form.get("usuario")
+    password = request.form.get("password") # ojo, se está guardando en texto plano
+    email = request.form.get("email")
+    user_type = request.form.get("user_type")
+    
+    if not username or not password or not email or not user_type:
         return jsonify({'message': 'Ningún campo puede estar vacío'}), 400
-    if not "@" in email:
+    if "@" not in email:
         return jsonify({'message': 'El correo electrónico debe tener un formato adecuado'}), 400
     if len(password) < 6:
         return jsonify({'message': 'La contraseña debe tener al menos 6 caracteres'}), 400
-    with open('usuarios.txt', 'r') as f: #chequeo de usuario unico. esto es muy burdo pero como es un ejemplo servirá.
+    
+    with open(file_path, 'r') as f: # chequeo de usuario y correo únicos
         lista = f.readlines()
         for linea in lista:
-            if linea.find(username) != -1:
+            if username in linea:
                 return jsonify({'message': 'El nombre de usuario ya está siendo utilizado'}), 400
+            if email in linea:
+                return jsonify({'message': 'El correo electrónico ya está siendo utilizado'}), 400
 
-    with open('usuarios.txt', 'a+') as f:
-        usuario = Usuario(cant_usuarios('usuarios.txt'), username, password, email)
-        f.write(f"{usuario.id},{usuario.username},{usuario.password},{usuario.email}\n")
+    # Crear el usuario según el tipo especificado
+    if user_type == 'gastronomico':
+        usuario = UsuarioGastronomico(username = username, password = password, email = email)
+    elif user_type == 'personal':
+        usuario = UsuarioPersonal(username = username, password = password, email = email)
+    else:
+        return jsonify({'message': 'Tipo de usuario no válido'}), 400
+
+    with open(file_path, 'a+') as f:
+        f.write(f"{usuario.id},{usuario.username},{usuario.password},{usuario.email},{user_type}\n")
         return jsonify({'message': 'Usuario creado con éxito'}), 200
-
 
 @app.route('/') # esta no pide token :)
 def hello():
-    return "Hola Mundo! aca en esta api este es el único endpoint, no hay ninguno más! posta!"
+    #return "Hola Mundo! aca en esta api este es el único endpoint, no hay ninguno más! posta!"
+    return send_from_directory(os.path.dirname(__file__), 'index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
