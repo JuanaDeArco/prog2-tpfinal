@@ -1,6 +1,8 @@
+from id import Id
 class Usuario:
-    def __init__(self, id, username, password, email) -> None:
-        self.id = id # y esto tiene que ir aumentando de a uno al crear usuarios
+    def __init__(self, username, password, email) -> None:
+        self.id = Id().asignar_id()
         self.username = username
         self.password = password
         self.email = email
+

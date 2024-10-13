@@ -1,1 +1,6 @@
-0,ivana,ivana123,@
+0,ivana,ivana123,@,
+1,test1,luciavazq,lucia@gmail.com,personal
+1,test2,luciavazq,lucia1@gmail.com,gastronomico
+1,test3,123456,test1@gmail.com,personal
+1,test4,123456,algo@gmail.com,gastronomico
+2,ahora_tengo_carpetas,123456,algo1@gmail.com,personal
