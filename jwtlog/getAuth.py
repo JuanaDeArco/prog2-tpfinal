@@ -1,12 +1,16 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, redirect, url_for, render_template
 import jwt #pip install pyjwt https://pyjwt.readthedocs.io/en/stable/
 from usuario import Usuario
 from GatronomicUser import UsuarioGastronomico
 from PersonalUser import UsuarioPersonal
+from menu_item import MenuItem
 import csv
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'paginas'))
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(current_dir, 'usuarios.txt')
 
 # Este es la "private key" del jwt que se generen. Esto deberia estar afuera
 # en un archivo de config o extraido desde una variable de entorno con os.environ
@@ -41,21 +45,23 @@ def gettoken():
     Genero un token para un usuario y una contraseña
     De esta manera todas las otras request se hacen con ese token y no con un user y un pass
     """
-    username = request.headers.get('user')
-    password = request.headers.get('pass')
-    f = csv.reader(open('usuarios.txt', 'r'), delimiter=',')
-    find = False    
-    for linea in f:
-        if username in linea:
-            find = True
-            if password not in linea:
+    username = request.form.get('user')
+    password = request.form.get('pass')
+    with open(file_path, 'r') as f:
+        reader = csv.reader(f, delimiter=',')
+        for linea in reader:
+            if linea[1] == username and linea[2] == password:
+                user_type = linea[-1]
+                print(user_type)
+                token = generate_token({'username': username, 'password': password, "user_type" : user_type})
+                response = jsonify({'token': token})
+                response.headers['Location'] = url_for('perfil', token=token)
+                return response, 302
+            elif linea[1] == username:
                 return jsonify({'message': 'Contraseña incorrecta'}), 403
 
-    if find == False:    
-        return jsonify({'message': 'Nombre de usuario no encontrado'}), 404
-    
-    token = generate_token({'username': username, 'password': password})
-    return jsonify({'token': token})
+    return jsonify({'message': 'Nombre de usuario no encontrado'}), 404
+
 
 @app.route('/secreto', methods=['GET'])
 def secreto():
@@ -76,14 +82,21 @@ def secreto():
 
     return jsonify({'message': 'Pudiste entrar a mi endpoint supersecreto!'})
 
-def cant_usuarios(archivo):
-    # esta funcion se va a reemplazar por una consulta a la DB
-    '''Como cada usuario es una linea en un archivo de texto, cuenta los usuarios contando las lineas'''
-    with open(archivo, 'r') as f:
-        return len(f.readlines())
+if not os.path.exists(file_path):
+    with open(file_path, 'w') as f:
+        pass
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(current_dir, 'usuarios.txt')
+@app.route('/') # esta no pide token :)
+def hello():
+    return send_from_directory(os.path.join(current_dir, 'paginas'), 'index.html')
+
+@app.route('/login')
+def login():
+    return send_from_directory(os.path.join(current_dir, 'paginas'), 'login.html')
+
+@app.route('/create_user')
+def create_user_page():
+    return send_from_directory(os.path.join(current_dir, 'paginas'), 'create_user.html')
 
 @app.route('/create_user', methods=['POST'])
 def crear_usuario():
@@ -106,7 +119,7 @@ def crear_usuario():
     if len(password) < 6:
         return jsonify({'message': 'La contraseña debe tener al menos 6 caracteres'}), 400
     
-    with open(file_path, 'r') as f: # chequeo de usuario y correo únicos
+    with open(file_path, 'r') as f: 
         lista = f.readlines()
         for linea in lista:
             if username in linea:
@@ -114,11 +127,10 @@ def crear_usuario():
             if email in linea:
                 return jsonify({'message': 'El correo electrónico ya está siendo utilizado'}), 400
 
-    # Crear el usuario según el tipo especificado
     if user_type == 'gastronomico':
-        usuario = UsuarioGastronomico(username = username, password = password, email = email)
+        usuario = UsuarioGastronomico(username=username, password=password, email=email)
     elif user_type == 'personal':
-        usuario = UsuarioPersonal(username = username, password = password, email = email)
+        usuario = UsuarioPersonal(username=username, password=password, email=email)
     else:
         return jsonify({'message': 'Tipo de usuario no válido'}), 400
 
@@ -126,10 +138,34 @@ def crear_usuario():
         f.write(f"{usuario.id},{usuario.username},{usuario.password},{usuario.email},{user_type}\n")
         return jsonify({'message': 'Usuario creado con éxito'}), 200
 
-@app.route('/') # esta no pide token :)
-def hello():
-    #return "Hola Mundo! aca en esta api este es el único endpoint, no hay ninguno más! posta!"
-    return send_from_directory(os.path.dirname(__file__), 'index.html')
+@app.route('/perfil')
+def perfil():
+    token = request.args.get('token')
+    if not token:
+        return jsonify({'message': 'Token no proporcionado'}), 403
+
+    try:
+        data = jwt.decode(token, secret_key, algorithms=['HS256'])
+        user_type = data['user_type']
+        username = data['username']
+        
+        # Load user data from file
+        with open(file_path, 'r') as f:
+            reader = csv.reader(f, delimiter=',')
+            for linea in reader:
+                if linea[1] == username:
+                    if user_type == 'personal':
+                        user = UsuarioPersonal(username=linea[1], password=linea[2], email=linea[3])
+                    else:
+                        user = UsuarioGastronomico(username=linea[1], password=linea[2], email=linea[3])
+                    break
+        
+        return render_template('perfil.html', user=user)
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token expirado'}), 403
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Token inválido'}), 403
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil</title>
+</head>
+<body>
+    <h1>Perfil de {{ user.username }}</h1>
+    <h2>Carpetas</h2>
+    <ul>
+        {% for folder_name, folder in user.folders.items() %}
+            <li>{{ folder_name }}
+                <ul>
+                    {% for item in folder.content %}
+                        <li>{{ item.descripcion }} - ${{ item.precio }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

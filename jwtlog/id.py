@@ -8,5 +8,5 @@ class Id:
         return cls._instancia
 
     def asignar_id(self):
-        self._counter += 1
-        return self._counter
+        Id._counter += 1
+        return Id._counter
