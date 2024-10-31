@@ -39,6 +39,7 @@ userList = api.model(
     }
 )
 #TODO un apimodel para cada cosa (menu item, roles, review, etc)
+
 parser = api.parser()
 parser.add_argument(
     "username", type=str, required=True, help="usuario", location="form"    
