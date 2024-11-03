@@ -3,6 +3,7 @@ from flask import Flask, Blueprint
 from flask_restx import Api, Resource, fields
 from User import Usuario
 import Roles
+import os
 
 api_v1 = Blueprint("api", __name__, url_prefix="/api/v1")
 
@@ -92,5 +93,6 @@ class TodoList(Resource):
     
 if __name__ == "__main__":
     app = Flask(__name__)
+    port = int(os.environ.get('PORT', 5000))
     app.register_blueprint(api_v1)
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=port)
