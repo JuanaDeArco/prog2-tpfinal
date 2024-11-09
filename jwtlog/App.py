@@ -2,6 +2,7 @@ from flask import Flask, Blueprint, render_template, request, redirect, url_for
 from flask_restx import Api, Resource, fields
 from User import Usuario
 import Roles
+import os
 
 app = Flask(__name__, template_folder='paginas')
 api_v1 = Blueprint("api", __name__, url_prefix="/api")
@@ -100,4 +101,8 @@ def register():
     return render_template('register.html')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app = Flask(__name__)
+    port = int(os.environ.get('PORT', 5000))
+    app.register_blueprint(api_v1)
+    app.run(debug=True, host='0.0.0.0', port=port)
+
