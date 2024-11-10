@@ -34,6 +34,9 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: imolena/merendar
+      -
+        name: Installing psycopg2
+        run: pip install psycopg2-binary
       - 
         name: Buildear la imagen de Docker
         uses: docker/build-push-action@v6
