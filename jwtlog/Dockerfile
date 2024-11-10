@@ -7,9 +7,9 @@ LABEL description="Docker para levantar la API"
 USER root
 RUN adduser -D worker
 WORKDIR /app
-COPY ./requirements.txt ./
+COPY ./jwtlog/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-COPY --chown=worker:worker . .
+COPY --chown=worker:worker ./jwtlog/ .
 
 
 USER worker
