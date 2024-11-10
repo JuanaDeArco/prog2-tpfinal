@@ -45,8 +45,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: .
-          file: ./jwtlog/Dockerfile
+          context: ./jwtlog
+          file: ./Dockerfile
           build-args: PORT=8080
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
