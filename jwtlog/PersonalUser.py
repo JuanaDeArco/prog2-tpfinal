@@ -1,4 +1,4 @@
-from usuario import Usuario
+from User import Usuario
 from folder import Folder
 class UsuarioPersonal(Usuario):
     def __init__(self, username, password, email):
