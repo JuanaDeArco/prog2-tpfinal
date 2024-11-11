@@ -1,9 +1,15 @@
+"""
+ESTE SCRIPT NO ESTA SIENDO USADO ACTUALMENTE
+NO EDITAR
+"""
+
+
 from flask import Flask, request, jsonify, send_from_directory, redirect, url_for, render_template
 import jwt #pip install pyjwt https://pyjwt.readthedocs.io/en/stable/
-from usuario import Usuario
-from GatronomicUser import UsuarioGastronomico
-from PersonalUser import UsuarioPersonal
-from menu_item import MenuItem
+from src.User import Usuario
+from src.GatronomicUser import UsuarioGastronomico
+from src.PersonalUser import UsuarioPersonal
+from src.MenuItem import MenuItem
 import csv
 import os
 
@@ -94,11 +100,11 @@ def hello():
 def login():
     return send_from_directory(os.path.join(current_dir, 'paginas'), 'login.html')
 
-@app.route('/create_user')
+@app.route('/register')
 def create_user_page():
-    return send_from_directory(os.path.join(current_dir, 'paginas'), 'create_user.html')
+    return send_from_directory(os.path.join(current_dir, 'paginas'), 'register.html')
 
-@app.route('/create_user', methods=['POST'])
+@app.route('/register', methods=['POST'])
 def crear_usuario():
     '''Crea un usuario nuevo y lo agrega al archivo de texto donde por ahora tenemos todos los usuarios.
     Esto más adelante va a ser una base de datos.

@@ -1,5 +1,5 @@
-from usuario import Usuario
-from jwtlog.menu_item import MenuItem
+from src.User import Usuario
+from src.MenuItem import MenuItem
 
 class UsuarioGastronomico(Usuario):
     def __init__(self, username, password, email):
