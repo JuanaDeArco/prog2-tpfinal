@@ -1,4 +1,4 @@
-from review import Review
+from src.Review import Review
 
 class MenuItem:
     def __init__(self, descripcion, precio):

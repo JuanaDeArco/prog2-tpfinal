@@ -1,5 +1,5 @@
-from id import Id
-import Roles
+from src.Id import Id
+import src.Roles as Roles
 
 
 class Usuario:

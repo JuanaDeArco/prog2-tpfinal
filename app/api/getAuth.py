@@ -1,9 +1,15 @@
+"""
+ESTE SCRIPT NO ESTA SIENDO USADO ACTUALMENTE
+NO EDITAR
+"""
+
+
 from flask import Flask, request, jsonify, send_from_directory, redirect, url_for, render_template
 import jwt #pip install pyjwt https://pyjwt.readthedocs.io/en/stable/
-from User import Usuario
-from GatronomicUser import UsuarioGastronomico
-from PersonalUser import UsuarioPersonal
-from menu_item import MenuItem
+from src.User import Usuario
+from src.GatronomicUser import UsuarioGastronomico
+from src.PersonalUser import UsuarioPersonal
+from src.MenuItem import MenuItem
 import csv
 import os
 
