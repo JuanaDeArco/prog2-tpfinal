@@ -2,7 +2,7 @@
 .vscode/
 *.pyc
 __pycache__/
-
+placeholder.db
 instance/
 
 .pytest_cache/

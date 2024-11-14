@@ -5,7 +5,6 @@ from flask import Flask, Blueprint, render_template, request, redirect, url_for,
 from flask_restx import Api, Resource, fields, Namespace
 from src.User import Usuario
 from . import api, app
-from src.User import Usuario
 from src.GatronomicUser import UsuarioGastronomico
 from src.PersonalUser import UsuarioPersonal
 from src.MenuItem import MenuItem
