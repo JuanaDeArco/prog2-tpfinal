@@ -17,4 +17,11 @@ docker run -p 8080:8080 pythonapi:1
 ```bash
 pip freeze > requirements.txt
 ```
+
+## Como correr sin docker
+```bash
+cd app
+python __init__.py
+```
+
 Esto hace que se cree el archivo con todas las dependencias y sus versiones

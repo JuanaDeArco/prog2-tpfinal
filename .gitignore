@@ -1,5 +1,5 @@
 .venv/
-
+.vscode/
 *.pyc
 __pycache__/
 
@@ -15,3 +15,5 @@ build/
 
 # db
 db/base
+
+/app/usuarios.txt
