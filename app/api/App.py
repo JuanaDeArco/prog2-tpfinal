@@ -1,7 +1,7 @@
 """
 Este es el codigo de la api
 """
-from flask import Flask, Blueprint, render_template, request, redirect, url_for, jsonify
+from flask import Flask, Blueprint, render_template, request, redirect, url_for, jsonify, session
 from flask_restx import Api, Resource, fields, Namespace
 from src.User import Usuario
 from . import api, app
@@ -12,17 +12,10 @@ from src.MenuItem import MenuItem
 import src.Roles as Roles
 from api.Auth import decode_token, generate_token
 import os
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(current_dir, 'usuarios.txt')
+from .models import db, ConfirmedUser, PotentialUser
+from datetime import datetime
 
 ns = Namespace("meriendas", description="merienda operations")
-
-# Esto es una base de datos
-USUARIOS = {
-    "nico": Usuario("nicog", "admin123", "mail@com.com", [Roles.PersonRole]),
-    "ivana": Usuario("ivana", "admin345", "iva@na.com", [Roles.GastroRole])
-}
 
 user = api.model(
     "Usuario", {
@@ -60,12 +53,18 @@ parser.add_argument(
     "role", type=str, required=False, help="Rol", location="form", choices=list(role_mapping.keys())
 )
 
+@app.route('/routes')
+def show_routes():
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append(f'{rule.endpoint}: {rule.rule}')
+    return "<br>".join(routes)
+
 ### APP.ROUTE son las visualizaciones de la PAGINA
 # O sea, los render template
 @app.route('/')
 def Index():
     return render_template('index.html')
-
 
 ### NS.ROUTE son los controles de la API
 # o sea, los GETS-POSTS
@@ -75,18 +74,34 @@ class Index(Resource):
     def get(self):
         return jsonify({"hotel":"trivago"})
 
-
 ### TODO: Todo lo que esta aca abajo
 @ns.route('/login')
 class Login(Resource):
-    def get():
+    def get(self):
         return render_template('login.html')
+    
+    def post(self):
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        print(username)
+        print(password)
+
+        if 1 == 1: #aca va una mejor logica de validacion cuando este lo de alchemy
+            session['username'] = username
+            session['password'] = password     
+            return redirect(url_for('home_page'))
+    
+@app.route('/login')
+def login_page():
+    return render_template('login.html')
 
 @ns.route('/register')
 class Register(Resource):
-    def get():
+    def get(self):
         return render_template('register.html')
-    def post():
+        
+    def post(self):
         '''Crea un usuario nuevo y lo agrega al archivo de texto donde por ahora tenemos todos los usuarios.
         Esto más adelante va a ser una base de datos.
         Restricciones:
@@ -94,36 +109,84 @@ class Register(Resource):
         - La contraseña tiene que tener mínimo 6 caracteres
         - Para que el mail sea válido, tiene que tener un @ en algún lado
         - No se pueden repetir usuarios ni emails'''
-        username = request.form.get("usuario")
-        password = request.form.get("password") # ojo, se está guardando en texto plano
-        email = request.form.get("email")
+
+        user_first_name = request.form.get("user_first_name")
+        user_last_name = request.form.get("user_last_name")
+        date_of_birth = request.form.get("date_of_birth")
+        gender = request.form.get("gender")
+        user_phone_number = request.form.get("user_phone_number")
+        user_document_type = request.form.get("user_document_type")
+        user_document = request.form.get("user_document")
+        user_email = request.form.get("user_email")
+        user_username = request.form.get("user_username")
+        password = request.form.get("password")
         user_type = request.form.get("user_type")
         
-        if not username or not password or not email or not user_type:
-            return jsonify({'message': 'Ningún campo puede estar vacío'}), 400
-        if "@" not in email:
-            return jsonify({'message': 'El correo electrónico debe tener un formato adecuado'}), 400
+        if not all([user_first_name, user_last_name, date_of_birth, gender, user_phone_number, 
+                    user_document_type, user_document, user_email, user_username, password, user_type]):
+            return jsonify({'message': 'Todos los campos son obligatorios'}), 400
+
+        if "@" not in user_email:
+            return jsonify({'message': 'El correo electrónico debe tener un formato válido'}), 400
+
         if len(password) < 6:
             return jsonify({'message': 'La contraseña debe tener al menos 6 caracteres'}), 400
-        
-        with open(file_path, 'r') as f: 
-            lista = f.readlines()
-            for linea in lista:
-                if username in linea:
-                    return jsonify({'message': 'El nombre de usuario ya está siendo utilizado'}), 400
-                if email in linea:
-                    return jsonify({'message': 'El correo electrónico ya está siendo utilizado'}), 400
 
-        if user_type == 'gastronomico':
-            usuario = UsuarioGastronomico(username=username, password=password, email=email)
-        elif user_type == 'personal':
-            usuario = UsuarioPersonal(username=username, password=password, email=email)
-        else:
-            return jsonify({'message': 'Tipo de usuario no válido'}), 400
+        existing_user = ConfirmedUser.query.filter(
+            (ConfirmedUser.user_username == user_username) | 
+            (ConfirmedUser.user_email == user_email)
+        ).first()
+        if existing_user:
+            return jsonify({'message': 'El nombre de usuario o correo electrónico ya está registrado'}), 400
 
-        with open(file_path, 'a+') as f:
-            f.write(f"{usuario.id},{usuario.username},{usuario.password},{usuario.email},{user_type}\n")
-            return jsonify({'message': 'Usuario creado con éxito'}), 200
+        potential_user = PotentialUser.query.filter(
+            (PotentialUser.user_username == user_username) | 
+            (PotentialUser.user_email == user_email)
+        ).first()
+        if potential_user:
+            return jsonify({'message': 'El nombre de usuario o correo electrónico ya está registrado'}), 400
+
+        new_user = PotentialUser(
+            user_first_name=user_first_name,
+            user_last_name=user_last_name,
+            date_of_birth=datetime.strptime(date_of_birth, "%Y-%m-%d"),
+            gender=gender,
+            user_phone_number=user_phone_number,
+            user_document_type=user_document_type,
+            user_document=user_document,
+            user_email=user_email,
+            user_username=user_username,
+            password_hash=password,
+            user_type=user_type,
+            is_verified=False
+        )
+
+        db.session.add(new_user)
+        db.session.commit()
+
+        return redirect(url_for('confirm_page'))
+
+@app.route('/register')
+def register_page():
+    return render_template('register.html')
+
+@app.route('/confirm')
+def confirm_page():
+    return render_template('confirm.html')
+
+##TODO
+@app.route('/home')
+def home_page():
+    return  f"faaaaaa cero seguridad habia"
+
+@app.route('/user/<user>')
+def user_page(user):
+    return f"Aca va el perfil de {user} - {session['username']}"
+
+@ns.route('/user/<name>')
+class UserProfile(Resource):
+    def get(self, name):
+        pass #LOGICA
 
 if __name__ == "__main__":
     app = Flask(__name__)
