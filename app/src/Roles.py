@@ -4,8 +4,6 @@ from src.MenuItem import MenuItem
 class Rol:
     def __init__(self,name) -> None:
         self.name = name
-
-
 class PersonRole(Rol):
     def __init__(self, username, password, email):
         super().__init__(username, password, email)
