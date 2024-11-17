@@ -1,7 +1,7 @@
 """
 Este es el codigo de la api
 """
-from flask import Flask, Blueprint, render_template, request, redirect, url_for, jsonify, session
+from flask import Flask, Blueprint, render_template, request, redirect, url_for, jsonify, session, flash
 from flask_restx import Api, Resource, fields, Namespace
 from src.User import Usuario
 from . import api, app
@@ -82,6 +82,9 @@ def register_select():
 def register_personal_page():
     return render_template('register_personal.html')
 
+@app.route('/gastronomic')
+def register_gastronomic_page():
+    return render_template('register_gastronomic.html')
 @ns.route('/personal')
 class RegisterPersonal(Resource):
     def get(self):
@@ -107,32 +110,61 @@ class RegisterPersonal(Resource):
         user_username = request.form.get("user_username")
         password = request.form.get("password")
         user_type = "P"
+        user_province = request.form.get("user_province")
+        user_postal_code = request.form.get("user_postal_code")
         
         if not all([user_first_name, user_last_name, date_of_birth, gender, user_phone_number, 
-                    user_document_type, user_document, user_email, user_username, password]):
-            return jsonify({'message': 'Todos los campos son obligatorios'}), 400
+                    user_document_type, user_document, user_email, user_username, password, user_province, user_postal_code]):
+            flash('Todos los campos son obligatorios', 'error')
+            return redirect(url_for('register_personal_page'))
 
         if "@" not in user_email:
-            return jsonify({'message': 'El correo electrónico debe tener un formato válido'}), 400
-
-        if len(password) < 6:
-            return jsonify({'message': 'La contraseña debe tener al menos 6 caracteres'}), 400
-
+            flash('El correo electrónico debe tener un formato válido', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        if len(password) < 10:
+            flash('La contraseña debe tener al menos 6 caracteres', 'error')
+            return redirect(url_for('register_personal_page'))
+        
         existing_user = ConfirmedUser.query.filter(
-            (ConfirmedUser.user_username == user_username) | 
-            (ConfirmedUser.user_email == user_email)
+            (ConfirmedUser.user_username == user_username)).first()
+        if existing_user:
+            flash('El nombre de usuario', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        existing_user = ConfirmedUser.query.filter(
+            (ConfirmedUser.user_email == user_email)).first()
+        if existing_user:
+            flash('El correo electrónico ya está registrado', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        existing_user = ConfirmedUser.query.filter((ConfirmedUser.user_phone_number == user_phone_number)
         ).first()
         if existing_user:
-            return jsonify({'message': 'El nombre de usuario o correo electrónico ya está registrado'}), 400
-
-        potential_user = PotentialUser.query.filter(
-            (PotentialUser.user_username == user_username) | 
-            (PotentialUser.user_email == user_email)
+            flash('El numero de telefono ya está registrado', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        potential_user = PotentialUser.query.filter((PotentialUser.user_phone_number == user_phone_number)
         ).first()
         if potential_user:
-            return jsonify({'message': 'El nombre de usuario o correo electrónico ya está registrado'}), 400
-
+            flash('El numero de telefono ya está registrado', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        potential_user = PotentialUser.query.filter(
+            (PotentialUser.user_username == user_username)).first()
+        if potential_user:
+            flash('El nombre de usuario ya está registrado', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        potential_user = PotentialUser.query.filter(
+            (PotentialUser.user_email == user_email)).first()
+        if potential_user:
+            flash('El correo electrónico ya está registrado', 'error')
+            return redirect(url_for('register_personal_page'))
+        
         new_user = PotentialUser(
+            user_province=user_province,
+            user_postal_code=user_postal_code,
             user_first_name=user_first_name,
             user_last_name=user_last_name,
             date_of_birth=datetime.strptime(date_of_birth, "%Y-%m-%d"),
@@ -147,16 +179,10 @@ class RegisterPersonal(Resource):
             is_verified=False
         )
 
-        print("Adding new user to the database...")
         db.session.add(new_user)
         db.session.commit()
-        print("User successfully added to the database.")
 
-        return redirect(url_for('home_page'))
-
-@app.route('/gastronomic')
-def register_gastronomic_page():
-    return render_template('register_gastronomic.html')
+        return redirect(url_for('confirm_page'))
 
 @ns.route('/gastronomic')
 class RegisterGatronomic(Resource):
@@ -172,28 +198,36 @@ class RegisterGatronomic(Resource):
         - Para que el mail sea válido, tiene que tener un @ en algún lado
         - No se pueden repetir usuarios ni emails'''
 
-        user_first_name = request.form.get("user_first_name")
-        user_last_name = request.form.get("user_last_name")
-        date_of_birth = request.form.get("date_of_birth")
-        gender = request.form.get("gender")
+        user_nombre_comercial = request.form.get("user_nombre_comercial")
         user_phone_number = request.form.get("user_phone_number")
         user_document_type = request.form.get("user_document_type")
         user_document = request.form.get("user_document")
-        user_email = request.form.get("user_email")
+        user_rep_legal = request.form.get("user_rep_legal")
+        user_province = request.form.get("user_province")
+        user_postal_code = request.form.get("user_postal_code")
         user_username = request.form.get("user_username")
+        user_email = request.form.get("user_email")
+        user_raz_soc = request.form.get("user_raz_soc")
+        user_rep_legal_doc = request.form.get("user_rep_legal_doc")
+        user_address = request.form.get("user_address")
         password = request.form.get("password")
-        user_type = request.form.get("user_type")
+        user_type = "G" 
         
-        if not all([user_first_name, user_last_name, date_of_birth, gender, user_phone_number, 
-                    user_document_type, user_document, user_email, user_username, password, user_type]):
-            return jsonify({'message': 'Todos los campos son obligatorios'}), 400
-
+        if not all([
+            user_nombre_comercial, user_phone_number, user_document_type, user_document,
+            user_province, user_postal_code, user_username, user_email, password
+        ]):
+            flash("Todos los campos obligatorios deben ser completados.", "error")
+            return redirect(url_for('register_gastronomic_page'))
+        
         if "@" not in user_email:
-            return jsonify({'message': 'El correo electrónico debe tener un formato válido'}), 400
-
-        if len(password) < 6:
-            return jsonify({'message': 'La contraseña debe tener al menos 6 caracteres'}), 400
-
+            flash("El correo electrónico debe tener un formato válido.", "error")
+            return redirect(url_for('register_gastronomic_page'))
+        
+        if len(password) < 10:
+            flash("La contraseña debe tener al menos 6 caracteres.", "error")
+            return redirect(url_for('register_gastronomic_page'))
+        
         existing_user = ConfirmedUser.query.filter(
             (ConfirmedUser.user_username == user_username) | 
             (ConfirmedUser.user_email == user_email)
@@ -209,15 +243,18 @@ class RegisterGatronomic(Resource):
             return jsonify({'message': 'El nombre de usuario o correo electrónico ya está registrado'}), 400
 
         new_user = PotentialUser(
-            user_first_name=user_first_name,
-            user_last_name=user_last_name,
-            date_of_birth=datetime.strptime(date_of_birth, "%Y-%m-%d"),
-            gender=gender,
+            user_nombre_comercial=user_nombre_comercial,
             user_phone_number=user_phone_number,
             user_document_type=user_document_type,
             user_document=user_document,
-            user_email=user_email,
+            user_rep_legal=user_rep_legal,
+            user_province=user_province,
+            user_postal_code=user_postal_code,
             user_username=user_username,
+            user_email=user_email,
+            user_raz_soc=user_raz_soc,
+            user_rep_legal_doc=user_rep_legal_doc,
+            user_address=user_address,
             password_hash=password,
             user_type=user_type,
             is_verified=False
@@ -226,7 +263,11 @@ class RegisterGatronomic(Resource):
         db.session.add(new_user)
         db.session.commit()
 
-        return redirect(url_for('home_page'))
+        return redirect(url_for('confirm_page'))
+    
+@app.route('/confirm')
+def confirm_page():
+    return render_template('confirm.html')
 
 
 ### TODO: Todo lo que esta aca abajo

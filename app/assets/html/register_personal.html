@@ -23,7 +23,7 @@
             margin-bottom: 10px;
         }
         .form-container {
-            background-color: #003366;
+            background-color: #021c91;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -66,7 +66,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            grid-column: span 2;  /* Para que el botón ocupe el ancho completo */
+            grid-column: span 2;  
         }
         input[type="submit"]:hover {
             background-color: #D9D2B6;
@@ -74,6 +74,20 @@
         .half-column {
             display: flex;
             flex-direction: column;
+        }.flash-messages {
+            list-style: none; 
+            padding: 0;
+            margin: 0;
+            color: red; 
+            background-color: #f8d7da; 
+            border: 1px solid #f5c6cb; 
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .flash-messages li {
+            margin-bottom: 5px;
+            font-size: 1em;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -81,7 +95,16 @@
 <body>
     <div class="form-container">
         <h1>Registrar Nuevo Usuario</h1>
-        <form action="/home" method="get">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <form action="/api/meriendas/personal" method="post">
             <div class="half-column">
                 <label for="first_name">Nombre:</label>
                 <input type="text" id="first_name" name="user_first_name" required>
