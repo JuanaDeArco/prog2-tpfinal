@@ -74,32 +74,94 @@ class Index(Resource):
     def get(self):
         return jsonify({"hotel":"trivago"})
 
-### TODO: Todo lo que esta aca abajo
-@ns.route('/login')
-class Login(Resource):
+@app.route('/select')
+def register_select():
+    return render_template('select_usertype.html')
+
+@app.route('/personal')
+def register_personal_page():
+    return render_template('register_personal.html')
+
+@ns.route('/personal')
+class RegisterPersonal(Resource):
     def get(self):
-        return render_template('login.html')
-    
+        return render_template('register_personal.html')
+        
     def post(self):
-        username = request.form.get("username")
+        '''Crea un usuario nuevo y lo agrega al archivo de texto donde por ahora tenemos todos los usuarios.
+        Esto más adelante va a ser una base de datos.
+        Restricciones:
+        - Todos los campos tienen que ser completados
+        - La contraseña tiene que tener mínimo 6 caracteres
+        - Para que el mail sea válido, tiene que tener un @ en algún lado
+        - No se pueden repetir usuarios ni emails'''
+
+        user_first_name = request.form.get("user_first_name")
+        user_last_name = request.form.get("user_last_name")
+        date_of_birth = request.form.get("date_of_birth")
+        gender = request.form.get("gender")
+        user_phone_number = request.form.get("user_phone_number")
+        user_document_type = request.form.get("user_document_type")
+        user_document = request.form.get("user_document")
+        user_email = request.form.get("user_email")
+        user_username = request.form.get("user_username")
         password = request.form.get("password")
+        user_type = "P"
+        
+        if not all([user_first_name, user_last_name, date_of_birth, gender, user_phone_number, 
+                    user_document_type, user_document, user_email, user_username, password]):
+            return jsonify({'message': 'Todos los campos son obligatorios'}), 400
 
-        print(username)
-        print(password)
+        if "@" not in user_email:
+            return jsonify({'message': 'El correo electrónico debe tener un formato válido'}), 400
 
-        if 1 == 1: #aca va una mejor logica de validacion cuando este lo de alchemy
-            session['username'] = username
-            session['password'] = password     
-            return redirect(url_for('home_page'))
-    
-@app.route('/login')
-def login_page():
-    return render_template('login.html')
+        if len(password) < 6:
+            return jsonify({'message': 'La contraseña debe tener al menos 6 caracteres'}), 400
 
-@ns.route('/register')
-class Register(Resource):
+        existing_user = ConfirmedUser.query.filter(
+            (ConfirmedUser.user_username == user_username) | 
+            (ConfirmedUser.user_email == user_email)
+        ).first()
+        if existing_user:
+            return jsonify({'message': 'El nombre de usuario o correo electrónico ya está registrado'}), 400
+
+        potential_user = PotentialUser.query.filter(
+            (PotentialUser.user_username == user_username) | 
+            (PotentialUser.user_email == user_email)
+        ).first()
+        if potential_user:
+            return jsonify({'message': 'El nombre de usuario o correo electrónico ya está registrado'}), 400
+
+        new_user = PotentialUser(
+            user_first_name=user_first_name,
+            user_last_name=user_last_name,
+            date_of_birth=datetime.strptime(date_of_birth, "%Y-%m-%d"),
+            gender=gender,
+            user_phone_number=user_phone_number,
+            user_document_type=user_document_type,
+            user_document=user_document,
+            user_email=user_email,
+            user_username=user_username,
+            password_hash=password,
+            user_type=user_type,
+            is_verified=False
+        )
+
+        print("Adding new user to the database...")
+        db.session.add(new_user)
+        db.session.commit()
+        print("User successfully added to the database.")
+
+        return redirect(url_for('home_page'))
+
+@app.route('/gastronomic')
+def register_gastronomic_page():
+    return render_template('register_gastronomic.html')
+
+@ns.route('/gastronomic')
+class RegisterGatronomic(Resource):
     def get(self):
-        return render_template('register.html')
+        return render_template('register_gastronomic.html')
         
     def post(self):
         '''Crea un usuario nuevo y lo agrega al archivo de texto donde por ahora tenemos todos los usuarios.
@@ -164,15 +226,30 @@ class Register(Resource):
         db.session.add(new_user)
         db.session.commit()
 
-        return redirect(url_for('confirm_page'))
+        return redirect(url_for('home_page'))
 
-@app.route('/register')
-def register_page():
-    return render_template('register.html')
 
-@app.route('/confirm')
-def confirm_page():
-    return render_template('confirm.html')
+### TODO: Todo lo que esta aca abajo
+@ns.route('/login')
+class Login(Resource):
+    def get(self):
+        return render_template('login.html')
+    
+    def post(self):
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        print(username)
+        print(password)
+
+        if 1 == 1: 
+            session['username'] = username
+            session['password'] = password     
+            return redirect(url_for('home_page'))
+    
+@app.route('/login')
+def login_page():
+    return render_template('login.html')
 
 ##TODO
 @app.route('/home')

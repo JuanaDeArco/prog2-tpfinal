@@ -9,17 +9,14 @@ db = SQLAlchemy()
 class ConfirmedUser(db.Model):
     __tablename__ = "USERS"
 
+    ##comun a ambos
     id = Column(Integer, primary_key=True, autoincrement=True)
-    created_at = Column(DateTime, default=datetime.utcnow)  # Fecha de creación de cuenta
+    created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    user_first_name = Column(VARCHAR(100), nullable=False)  
-    user_last_name = Column(VARCHAR(100), nullable=False) 
-    date_of_birth = Column(Date, nullable=False)  
-    gender = Column(VARCHAR(20), nullable=True)  
     user_phone_number = Column(VARCHAR(15), unique=False, nullable=False)
-    user_document_type = Column(VARCHAR(20), nullable=False)  
-    user_document = Column(VARCHAR(50), unique=True, nullable=False)  
-    user_email = Column(VARCHAR(200), unique=True, nullable=False)
+    user_email = Column(VARCHAR(200), unique=True, nullable=False)  
+    user_province = Column(VARCHAR(100)) 
+    user_postal_code = Column(VARCHAR(10))
     user_username = Column(VARCHAR(50), unique=True, nullable=False)  
     password_hash = Column(VARCHAR(255), nullable=False)
     user_type = Column(VARCHAR(10), unique=True, nullable=False)
@@ -27,26 +24,57 @@ class ConfirmedUser(db.Model):
     bio = Column(Text, nullable=True)
     profile_pictures = relationship("ProfilePicture", back_populates="user_confirmed", cascade="all, delete-orphan")
 
-class PotentialUser(db.Model):
-    __tablename__ = "POTENTIAL_USERS"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    created_at = Column(DateTime, default=datetime.utcnow)  # Fecha de creación de cuenta
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    ##personal
     user_first_name = Column(VARCHAR(100), nullable=False)  
     user_last_name = Column(VARCHAR(100), nullable=False) 
     date_of_birth = Column(Date, nullable=False)  
-    gender = Column(VARCHAR(20), nullable=True)  
-    user_phone_number = Column(VARCHAR(15), unique=False, nullable=False)
+    gender = Column(VARCHAR(20), nullable=True)
     user_document_type = Column(VARCHAR(20), nullable=False)  
-    user_document = Column(VARCHAR(50), unique=True, nullable=False)  
+    user_document = Column(VARCHAR(50), unique=True, nullable=False)   
+
+    ##gastro
+    user_nombre_comercial =  Column(VARCHAR(100), nullable=False) 
+    user_raz_soc =  Column(VARCHAR(100)) 
+    user_cuit = Column(Integer)
+    user_rep_legal =  Column(VARCHAR(100)) 
+    user_rep_legal_doc =  Column(VARCHAR(100)) 
+    user_address = Column(VARCHAR(255), nullable=True)  
+      
+    
+
+class PotentialUser(db.Model):
+    __tablename__ = "POTENTIAL_USERS"
+
+        ##comun a ambos
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user_phone_number = Column(VARCHAR(15), unique=False, nullable=False)
     user_email = Column(VARCHAR(200), unique=True, nullable=False)
+    user_province = Column(VARCHAR(100)) 
+    user_postal_code = Column(VARCHAR(10))
     user_username = Column(VARCHAR(50), unique=True, nullable=False)  
     password_hash = Column(VARCHAR(255), nullable=False)
-    user_type = Column(VARCHAR(10), nullable=False)
+    user_type = Column(VARCHAR(10), unique=True, nullable=False)
     is_verified = Column(Boolean, default=False)
     bio = Column(Text, nullable=True)
     profile_pictures = relationship("ProfilePicture", back_populates="user_potential", cascade="all, delete-orphan")
+
+    ##personal
+    user_first_name = Column(VARCHAR(100), nullable=False)  
+    user_last_name = Column(VARCHAR(100), nullable=False) 
+    date_of_birth = Column(Date, nullable=False)  
+    gender = Column(VARCHAR(20), nullable=True)
+    user_document_type = Column(VARCHAR(20), nullable=False)  
+    user_document = Column(VARCHAR(50), unique=True, nullable=False)   
+
+    ##gastro
+    user_nombre_comercial =  Column(VARCHAR(100), nullable=False) 
+    user_raz_soc =  Column(VARCHAR(100)) 
+    user_cuit = Column(Integer)
+    user_rep_legal =  Column(VARCHAR(100)) 
+    user_rep_legal_doc =  Column(VARCHAR(100)) 
+    user_address = Column(VARCHAR(255), nullable=True)  
 
 class ProfilePicture(db.Model):
     __tablename__ = "PROFILE_PICTURES"

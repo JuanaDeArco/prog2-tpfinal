@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Bienvenida</title>
+    <title>Seleccionar Tipo de Usuario</title>
     <style>
         body {
             display: flex;
@@ -16,9 +16,9 @@
         }
         h1 {
             color:  #070ad6;
-            font-size: 2.5em;
+            font-size: 2em;
         }
-        .font-sample {
+        .option {
             margin: 20px 0;
         }
         a {
@@ -34,22 +34,19 @@
         a:hover {
             background-color: #070ad6;
         }
-        .logo {
-            width: 150px;
-            height: auto;
-            margin-bottom: 20px;
+        .note {
+            color: #070ad6; 
+            font-size: 0.9em; 
+            margin-top: 5px; 
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="font-sample" style="font-family: 'Roboto', sans-serif;">
-        <h1>bienvenido a merendAR</h1>
+    <h1>Selecciona el tipo de usuario</h1>
     </div>
-    <a href="/login">Iniciar Sesión</a>
-    <a href="/select">Crear Usuario</a>
-    <!-- <marquee> ¡¡¡¡Marquesina Sigue Funcionando!!!!</marquee> -->
-    <a href="/api/docs"> Leer los docs de la Api</a>
+    <a href="/personal">Personal</a>
+    <p class="note">Este tipo de usuario es para uso personal y no comercial.</p>
+    <a href="/gastronomic">Gastronómico</a>
+    <p class="note">Selecciona esta opción si representas un negocio gastronómico.</p>
 </body>
 </html>
