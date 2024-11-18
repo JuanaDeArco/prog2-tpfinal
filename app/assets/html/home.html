@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Página de Inicio</title>
+    <style>
+    
+    </style>
+</head>
+<body>
+    <h1>Bienvenido a la Página de Inicio</h1>
+
+    {% if user_type == 'P' %}
+        <p>¡Eres un BOLUDO! Aquí están tus opciones:</p>
+    {% elif user_type == 'G' %}
+        <p>¡Bienvenido, LADRON! Aquí están tus opciones:</p>
+    {% else %}
+        <p>Bienvenido, {{user_type}}. Regístrate o inicia sesión para acceder a más opciones.</p>
+    {% endif %}
+    
+</body>
+</html>

@@ -10,7 +10,7 @@ from sqlalchemy_utils import database_exists, create_database
 ## IDEA: HACEMOS ESTO COMO FACTORY METHOD
 app = Flask(__name__, 
             template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../assets/html'), static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../assets/static'))
-app.secret_key = "cheesecake"
+app.secret_key = "ilovemerienda"
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:Luchi0803@127.0.0.1/test"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
