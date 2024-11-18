@@ -14,6 +14,7 @@ from api.Auth import decode_token, generate_token
 import os
 from .models import db, ConfirmedUser, PotentialUser
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 ns = Namespace("meriendas", description="merienda operations")
 
@@ -95,7 +96,7 @@ class RegisterPersonal(Resource):
         Esto más adelante va a ser una base de datos.
         Restricciones:
         - Todos los campos tienen que ser completados
-        - La contraseña tiene que tener mínimo 6 caracteres
+        - La contraseña tiene que tener mínimo 8 caracteres
         - Para que el mail sea válido, tiene que tener un @ en algún lado
         - No se pueden repetir usuarios ni emails'''
 
@@ -122,8 +123,8 @@ class RegisterPersonal(Resource):
             flash('El correo electrónico debe tener un formato válido', 'error')
             return redirect(url_for('register_personal_page'))
         
-        if len(password) < 10:
-            flash('La contraseña debe tener al menos 6 caracteres', 'error')
+        if len(password) < 8:
+            flash('La contraseña debe tener al menos 8 caracteres', 'error')
             return redirect(url_for('register_personal_page'))
         
         existing_user = ConfirmedUser.query.filter(
@@ -162,6 +163,8 @@ class RegisterPersonal(Resource):
             flash('El correo electrónico ya está registrado', 'error')
             return redirect(url_for('register_personal_page'))
         
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
+        
         new_user = PotentialUser(
             user_province=user_province,
             user_postal_code=user_postal_code,
@@ -174,7 +177,7 @@ class RegisterPersonal(Resource):
             user_document=user_document,
             user_email=user_email,
             user_username=user_username,
-            password_hash=password,
+            password_hash=hashed_password,
             user_type=user_type,
             is_verified=False
         )
@@ -194,7 +197,7 @@ class RegisterGatronomic(Resource):
         Esto más adelante va a ser una base de datos.
         Restricciones:
         - Todos los campos tienen que ser completados
-        - La contraseña tiene que tener mínimo 6 caracteres
+        - La contraseña tiene que tener mínimo 8 caracteres
         - Para que el mail sea válido, tiene que tener un @ en algún lado
         - No se pueden repetir usuarios ni emails'''
 
@@ -224,8 +227,8 @@ class RegisterGatronomic(Resource):
             flash("El correo electrónico debe tener un formato válido.", "error")
             return redirect(url_for('register_gastronomic_page'))
         
-        if len(password) < 10:
-            flash("La contraseña debe tener al menos 6 caracteres.", "error")
+        if len(password) < 8:
+            flash("La contraseña debe tener al menos 8 caracteres.", "error")
             return redirect(url_for('register_gastronomic_page'))
         
         existing_user = ConfirmedUser.query.filter(
@@ -242,6 +245,7 @@ class RegisterGatronomic(Resource):
         if potential_user:
             return jsonify({'message': 'El nombre de usuario o correo electrónico ya está registrado'}), 400
 
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
         new_user = PotentialUser(
             user_nombre_comercial=user_nombre_comercial,
             user_phone_number=user_phone_number,
@@ -255,7 +259,7 @@ class RegisterGatronomic(Resource):
             user_raz_soc=user_raz_soc,
             user_rep_legal_doc=user_rep_legal_doc,
             user_address=user_address,
-            password_hash=password,
+            password_hash=hashed_password,
             user_type=user_type,
             is_verified=False
         )
@@ -271,31 +275,42 @@ def confirm_page():
 
 
 ### TODO: Todo lo que esta aca abajo
+@app.route('/login')
+def login_page():
+    return render_template('login.html')
 @ns.route('/login')
 class Login(Resource):
     def get(self):
         return render_template('login.html')
     
     def post(self):
-        username = request.form.get("username")
+        username_or_email = request.form.get("username")
         password = request.form.get("password")
 
-        print(username)
-        print(password)
+        if not username_or_email or not password:
+            flash("Ambos campos son obligatorios.", "error")
+            return redirect(url_for('login_page'))
+        
+        user = ConfirmedUser.query.filter(
+            (ConfirmedUser.user_username == username_or_email) | 
+            (ConfirmedUser.user_email == username_or_email)
+        ).first()
 
-        if 1 == 1: 
-            session['username'] = username
-            session['password'] = password     
-            return redirect(url_for('home_page'))
-    
-@app.route('/login')
-def login_page():
-    return render_template('login.html')
+        if not user:
+            flash("Usuario o correo no registrado.", "error")
+            return redirect(url_for('login_page'))
+        
+        if not check_password_hash(user.password_hash, password):
+            flash("Contraseña incorrecta.", "error")
+            return redirect(url_for('login_page'))
+
+        session['username'] = user.user_username 
+        return redirect(url_for('home_page'))
 
 ##TODO
 @app.route('/home')
 def home_page():
-    return  f"faaaaaa cero seguridad habia"
+    return  f"faaaaaa que seguridad que habia"
 
 @app.route('/user/<user>')
 def user_page(user):

@@ -75,6 +75,20 @@
         }
         .register-link:hover {
             text-decoration: underline;
+        }.flash-messages {
+            list-style: none; 
+            padding: 0;
+            margin: 0;
+            color: red; 
+            background-color: #f8d7da; 
+            border: 1px solid #f5c6cb; 
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .flash-messages li {
+            margin-bottom: 5px;
+            font-size: 1em;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -82,6 +96,15 @@
 <body>
     <div class="form-container">
         <h1>Iniciar Sesión</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for category, message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
         <form action="/api/meriendas/login" method="post">
             <label for="username">Usuario:</label>
             <input type="text" id="username" name="username" required><br>
@@ -91,7 +114,7 @@
 
             <input type="submit" value="Enviar">
         </form>
-        <a href="/register" class="register-link">¿No tienes una cuenta? Crea una aquí</a>
+        <a href="/select" class="register-link">¿No tienes una cuenta? Crea una aquí</a>
     </div>
 </body>
 </html>
