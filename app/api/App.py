@@ -7,7 +7,7 @@ from . import api, app
 import src.Roles as Roles
 from api.Auth import decode_token, generate_token
 import os
-from .models import db, ConfirmedUser, PotentialUser
+from .models import db, ConfirmedUser, PotentialUser, Folders
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
@@ -196,8 +196,20 @@ class RegisterPersonal(Resource):
             is_verified=False
         )
 
+        id = new_confirmed_user.id
+        to_visit = Folders(user_id = id,
+            folder_name = "Por visitar",
+            exclusive = True
+                             )
+        visited = Folders(user_id = id,
+            folder_name = "Visitados",
+            exclusive = True
+                             )
+
         db.session.add(new_user)
         db.session.add(new_confirmed_user)
+        db.session.add(to_visit)
+        db.session.add(visited)
         db.session.commit()
 
         token = generate_confirmation_token(user_email)
