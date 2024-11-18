@@ -13,6 +13,8 @@ app = Flask(__name__,
 app.secret_key = "cheesecake"
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:Luchi0803@127.0.0.1/test"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config['SECRET_KEY'] = 'ilovemerienda'
+app.config['SECURITY_PASSWORD_SALT'] = 'mUakkqoqoEAA9jB7yKg6ilOFnQdxxq9S'
 
 engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
 if not database_exists(engine.url):
@@ -35,7 +37,7 @@ app.register_blueprint(views)
 from .App import ns as ns_api
 api.add_namespace(ns_api)
 
-from .models import db, ConfirmedUser, PotentialUser, ProfilePicture
+from .models import db, ConfirmedUser, PotentialUser, ProfilePicture, Folders, MenuItems, SavedItems, Reviews, Establishments
 db.init_app(app)
 with app.app_context():
     db.create_all()  

@@ -43,7 +43,12 @@
 </head>
 <body>
     <h1>¡Registro Exitoso!</h1>
-    <p>Se ha enviado un correo de confirmación a tu dirección de email. Por favor, revisa tu bandeja de entrada y sigue las instrucciones para activar tu cuenta.</p>
+    <p>Se ha creado tu cuenta correctamente. Para finalizar, por favor haz clic en el siguiente enlace para confirmar tu registro:</p>
+    
+    <a href="{{ url_for('confirm_page', token=token) }}">Confirmar mi registro</a>
+
+    <p>Si no recibes el correo de confirmación, revisa tu bandeja de spam.</p>
+
     <a href="/login">Iniciar Sesión</a>
 </body>
 </html>

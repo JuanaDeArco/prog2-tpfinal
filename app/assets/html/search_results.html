@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados de Búsqueda</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #FAF3DD;
+            padding: 20px;
+        }
+        h1 {
+            color: #021c91;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .search-info {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .queue-container {
+            margin-top: 20px;
+            width: 100%;
+            overflow: hidden;
+            border: 2px solid #021c91;
+            border-radius: 10px;
+            background-color: #fff;
+            padding: 15px;
+        }
+        .queue-item {
+            background-color: #021c91;
+            color: white;
+            padding: 10px 20px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .results-table th, .results-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .results-table th {
+            background-color: #021c91;
+            color: white;
+        }
+        .results-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .results-table tr:hover {
+            background-color: #ddd;
+        }
+        .back-link {
+            margin-top: 20px;
+            display: inline-block;
+            padding: 10px 20px;
+            text-decoration: none;
+            background-color: #021c91;
+            color: white;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+        .back-link:hover {
+            background-color:#021c91;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="search-info">
+        <h1>Encontrado para: {{ user_search }}</h1>
+    </div>
+
+    {% if establishments %}
+        <div class="queue-container">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Código Postal</th>
+                        <th>Dirección</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for establishment in establishments %}
+                        <tr>
+                            <td>{{ establishment.name }}</td>
+                            <td>{{ establishment.est_postal_code }}</td>
+                            <td>{{ establishment.address }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No se encontraron resultados para la búsqueda.</p>
+    {% endif %}
+
+    <a href="{{ url_for('home_page') }}" class="back-link">Volver a Buscar</a>
+
+</body>
+</html>
