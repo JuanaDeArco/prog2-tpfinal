@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Confirmación de Registro</title>
+    <title>Seleccionar Tipo de Usuario</title>
     <style>
         body {
             display: flex;
@@ -15,18 +15,15 @@
             background-color: #FAF3DD;
         }
         h1 {
-            color:  #021c91;
-            font-size: 2.5em;
-            font-family: 'Roboto', sans-serif;
-        }
-        p {
             color: #021c91;
-            font-size: 1.2em;
-            font-family: 'Roboto', sans-serif;
+            font-size: 2em;
+        }
+        .option {
+            margin: 20px 0;
         }
         a {
             display: block;
-            margin-top: 20px;
+            margin: 10px 0;
             padding: 10px 20px;
             text-decoration: none;
             color: white;
@@ -37,13 +34,19 @@
         a:hover {
             background-color:#021c91;
         }
+        .note {
+            color:#021c91; 
+            font-size: 0.9em; 
+            margin-top: 5px; 
+        }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>¡Registro Exitoso!</h1>
-    <p>Se ha enviado un correo de confirmación a tu dirección de email. Por favor, revisa tu bandeja de entrada y sigue las instrucciones para activar tu cuenta.</p>
-    <a href="/login">Iniciar Sesión</a>
+    <h1>Selecciona el tipo de usuario</h1>
+    </div>
+    <a href="/personal">Personal</a>
+    <p class="note">Este tipo de usuario es para uso personal y no comercial.</p>
+    <a href="/gastronomic">Gastronómico</a>
+    <p class="note">Selecciona esta opción si representas un negocio gastronómico.</p>
 </body>
 </html>
