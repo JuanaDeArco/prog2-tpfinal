@@ -74,6 +74,29 @@ class PotentialUser(db.Model):
     user_rep_legal_doc =  Column(VARCHAR(100)) 
     user_address = Column(VARCHAR(255))  
 
+class Establishments(db.Model):
+    __tablename__ = "ESTABLISHMENTS"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    est_name = Column(VARCHAR(200), nullable=False)
+    est_desc = Column(VARCHAR(2000))
+    est_owner_id = Column(Integer, ForeignKey('USERS.id'))
+    est_address =  Column(VARCHAR(255))
+    est_postal_code = Column(VARCHAR(10))
+    est_es_usuario = Column(Boolean, default=False)
+    long = Column(VARCHAR(200))
+    lat = Column(VARCHAR(200))
+    categoria = Column(VARCHAR(200))
+    cocina = Column(VARCHAR(200))
+    ambientacion = Column(VARCHAR(200))
+    telefono = Column(VARCHAR(20))
+    mail = Column(VARCHAR(100))
+    horario = Column(VARCHAR(200))
+    calle_nombre = Column(VARCHAR(200))
+    calle_altura = Column(Integer)
+    calle_cruce = Column(VARCHAR(200))
+    barrio = Column(VARCHAR(200))
+    comuna = Column(VARCHAR(200))
+
 class Folders(db.Model):
     __tablename__ = "USER_FOLDERS"
 
@@ -87,7 +110,7 @@ class MenuItems(db.Model):
     __tablename__ = "MENU_ITEMS"
 
     menu_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('USERS.id'))
+    est_id = Column(Integer, ForeignKey('ESTABLISHMENTS.id'))
     item_name = Column(VARCHAR(200), nullable=False)
     item_description = Column(VARCHAR(200))
     item_price = Column(Float)

@@ -7,7 +7,7 @@ from . import api, app
 import src.Roles as Roles
 from api.Auth import decode_token, generate_token
 import os
-from .models import db, ConfirmedUser, PotentialUser, Folders
+from .models import db, ConfirmedUser, PotentialUser, Folders, Establishments
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
@@ -263,38 +263,39 @@ class RegisterGatronomic(Resource):
         existing_user = ConfirmedUser.query.filter(
             (ConfirmedUser.user_username == user_username)).first()
         if existing_user:
-            flash('El nombre de usuario', 'error')
-            return redirect(url_for('register_personal_page'))
+            flash('El nombre de usuario ya existe', 'error')
+            return redirect(url_for('register_gastronomic_page'))
         
         existing_user = ConfirmedUser.query.filter(
             (ConfirmedUser.user_email == user_email)).first()
+        
         if existing_user:
             flash('El correo electrónico ya está registrado', 'error')
-            return redirect(url_for('register_personal_page'))
+            return redirect(url_for('register_gastronomic_page'))
         
         existing_user = ConfirmedUser.query.filter((ConfirmedUser.user_phone_number == user_phone_number)
         ).first()
         if existing_user:
             flash('El numero de telefono ya está registrado', 'error')
-            return redirect(url_for('register_personal_page'))
+            return redirect(url_for('register_gastronomic_page'))
         
         potential_user = PotentialUser.query.filter((PotentialUser.user_phone_number == user_phone_number)
         ).first()
         if potential_user:
             flash('El numero de telefono ya está registrado', 'error')
-            return redirect(url_for('register_personal_page'))
+            return redirect(url_for('register_gastronomic_page'))
         
         potential_user = PotentialUser.query.filter(
             (PotentialUser.user_username == user_username)).first()
         if potential_user:
             flash('El nombre de usuario ya está registrado', 'error')
-            return redirect(url_for('register_personal_page'))
+            return redirect(url_for('register_gastronomic_page'))
         
         potential_user = PotentialUser.query.filter(
             (PotentialUser.user_email == user_email)).first()
         if potential_user:
             flash('El correo electrónico ya está registrado', 'error')
-            return redirect(url_for('register_personal_page'))
+            return redirect(url_for('register_gastronomic_page'))
         
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
         new_user = PotentialUser(
@@ -382,20 +383,56 @@ def home_page():
     user_type = session.get("user_type")
     return render_template('home.html', user_type=user_type)
 
+@ns.route("home")
+class Home(Resource):
+    def get(self):
+        user_type = session.get("user_type")
+        return render_template('home.html', user_type=user_type)
+    def push(self):
+        # search = request.form.get("user_search")
+        return redirect(url_for("search_page"))
+
 @app.route('/search')
 def search_page():
-    user_search = request.form.get("user_search")
-    return f"aca vas a buscar lo que encontras con la info de {user_search}"
-
+    user_search = request.args.get('user_search')
+    if user_search:
+        return render_template('search_results.html', user_search=user_search)
+    else:
+        return "No se proporcionó ningún término de búsqueda."
+    
 @ns.route('/search')
 class Search(Resource):
     def get(self):
-        user_search = request.form.get("user_search")
-        return f"aca vas a buscar lo que encontras con la info de {user_search}"
-    
-    def post(self):
-        user_search = request.form.get("user_search")
-        return f"aca vas a buscar lo que encontras con la info de {user_search}"
+        user_search = request.args.get('user_search')
+        if user_search:
+            return render_template('search_results.html', user_search=user_search)
+        else:
+            flash("No se proporciono un valor de busqueda valido", "error")
+            return redirect(url_for('search_page'))
+    def push(self):
+        user_search = request.args.get('user_search')
+        search_criteria = request.args.get('search_criteria')
+        if user_search:
+            if search_criteria == "postal_code":
+                establishments = Establishments.query.filter(Establishments.est_postal_code == user_search)
+            elif search_criteria == "neighborhood":
+                establishments = Establishments.query.filter(Establishments.neighborhood == user_search)
+            elif search_criteria == "name":
+                establishments = Establishments.query.filter(Establishments.name.contains(user_search))
+            elif search_criteria == "user":
+                establishments = Establishments.query.filter(Establishments.user.contains(user_search))
+            else:
+                flash("Criterio de búsqueda no válido.", "error")
+                return redirect(url_for('search_page'))
+            
+            if establishments:
+                return render_template('search_results.html', establishments=establishments, user_search=user_search)
+            else:
+                flash("No se encontraron establecimientos para la busqueda", "error")
+                return redirect(url_for('search_page'))
+        else:
+            flash("No se proporciono un valor de busqueda valido", "error")
+            return redirect(url_for('search_page'))
 
 ##TODO
 @app.route('/user/<user>')
