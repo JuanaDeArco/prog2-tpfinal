@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, Text, Date, Boolean, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String,Float, Text, Date, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mysql import VARCHAR, BLOB
 from datetime import datetime
@@ -40,8 +40,6 @@ class ConfirmedUser(db.Model):
     user_rep_legal_doc =  Column(VARCHAR(100)) 
     user_address = Column(VARCHAR(255))  
       
-    
-
 class PotentialUser(db.Model):
     __tablename__ = "POTENTIAL_USERS"
 
@@ -76,6 +74,41 @@ class PotentialUser(db.Model):
     user_rep_legal_doc =  Column(VARCHAR(100)) 
     user_address = Column(VARCHAR(255))  
 
+class Folders(db.Model):
+    __tablename__ = "USER_FOLDERS"
+
+    folder_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('USERS.id'))
+    folder_name = Column(VARCHAR(200), nullable=False)
+    editable = Column(Boolean, default=False)
+    exclusive = Column(Boolean, default=False)
+
+class MenuItems(db.Model):
+    __tablename__ = "MENU_ITEMS"
+
+    menu_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('USERS.id'))
+    item_name = Column(VARCHAR(200), nullable=False)
+    item_description = Column(VARCHAR(200))
+    item_price = Column(Float)
+    item_photo = relationship("ProfilePicture", back_populates="user_potential", cascade="all, delete-orphan")
+class SavedItems(db.Model):
+    __tablename__ = "USER_SAVED_ITEMS"
+
+    saved_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('USERS.id'))
+    menu_id = Column(Integer, ForeignKey('MENU_ITEMS.menu_id'))
+    folder_id =  Column(Integer, ForeignKey('USER_FOLDERS.folder_id'))
+
+class Reviews(db.Model):
+    __tablename__ = "USER_REVIEWS"
+
+    review_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('USERS.id'))
+    menu_id = Column(Integer, ForeignKey('MENU_ITEMS.menu_id'))
+    review_rating = Column(Float)
+    review_comment = Column(VARCHAR(2000))
+
 class ProfilePicture(db.Model):
     __tablename__ = "PROFILE_PICTURES"
     
@@ -89,3 +122,14 @@ class ProfilePicture(db.Model):
     uploaded_at = Column(DateTime, default=datetime.utcnow)
     user_confirmed = relationship("ConfirmedUser", back_populates="profile_pictures")
     user_potential = relationship("PotentialUser", back_populates="profile_pictures")
+
+class MenuPicture(db.Model):
+    __tablename__ = "MENU_ITEM_PICTURE"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    item_id =  Column(Integer, ForeignKey('MENU_ITEMS.menu_id'))
+    image_data = Column(BLOB, nullable=False)
+    file_name = Column(VARCHAR(255), nullable=False)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    menu_item = relationship("MenuItem", back_populates="profile_pictures")
+    
