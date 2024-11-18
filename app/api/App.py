@@ -249,19 +249,41 @@ class RegisterGatronomic(Resource):
             return redirect(url_for('register_gastronomic_page'))
         
         existing_user = ConfirmedUser.query.filter(
-            (ConfirmedUser.user_username == user_username) | 
-            (ConfirmedUser.user_email == user_email)
+            (ConfirmedUser.user_username == user_username)).first()
+        if existing_user:
+            flash('El nombre de usuario', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        existing_user = ConfirmedUser.query.filter(
+            (ConfirmedUser.user_email == user_email)).first()
+        if existing_user:
+            flash('El correo electrónico ya está registrado', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        existing_user = ConfirmedUser.query.filter((ConfirmedUser.user_phone_number == user_phone_number)
         ).first()
         if existing_user:
-            return jsonify({'message': 'El nombre de usuario o correo electrónico ya está registrado'}), 400
-
-        potential_user = PotentialUser.query.filter(
-            (PotentialUser.user_username == user_username) | 
-            (PotentialUser.user_email == user_email)
+            flash('El numero de telefono ya está registrado', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        potential_user = PotentialUser.query.filter((PotentialUser.user_phone_number == user_phone_number)
         ).first()
         if potential_user:
-            return jsonify({'message': 'El nombre de usuario o correo electrónico ya está registrado'}), 400
-
+            flash('El numero de telefono ya está registrado', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        potential_user = PotentialUser.query.filter(
+            (PotentialUser.user_username == user_username)).first()
+        if potential_user:
+            flash('El nombre de usuario ya está registrado', 'error')
+            return redirect(url_for('register_personal_page'))
+        
+        potential_user = PotentialUser.query.filter(
+            (PotentialUser.user_email == user_email)).first()
+        if potential_user:
+            flash('El correo electrónico ya está registrado', 'error')
+            return redirect(url_for('register_personal_page'))
+        
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
         new_user = PotentialUser(
             user_nombre_comercial=user_nombre_comercial,
@@ -343,12 +365,27 @@ class Login(Resource):
         session["user_type"] = user.user_type
         return redirect(url_for('home_page'))
 
-##TODO
 @app.route('/home')
 def home_page():
     user_type = session.get("user_type")
     return render_template('home.html', user_type=user_type)
 
+@app.route('/search')
+def search_page():
+    user_search = request.form.get("user_search")
+    return f"aca vas a buscar lo que encontras con la info de {user_search}"
+
+@ns.route('/search')
+class Search(Resource):
+    def get(self):
+        user_search = request.form.get("user_search")
+        return f"aca vas a buscar lo que encontras con la info de {user_search}"
+    
+    def post(self):
+        user_search = request.form.get("user_search")
+        return f"aca vas a buscar lo que encontras con la info de {user_search}"
+
+##TODO
 @app.route('/user/<user>')
 def user_page(user):
     return f"Aca va el perfil de {user} - {session['username']}"

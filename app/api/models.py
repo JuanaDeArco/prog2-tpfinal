@@ -91,7 +91,9 @@ class MenuItems(db.Model):
     item_name = Column(VARCHAR(200), nullable=False)
     item_description = Column(VARCHAR(200))
     item_price = Column(Float)
-    item_photo = relationship("ProfilePicture", back_populates="user_potential", cascade="all, delete-orphan")
+    # item_photo_id = Column(Integer, ForeignKey('MENU_ITEM_PICTURE.id'), unique=True)  
+    # item_photo = relationship("MenuPicture", back_populates="menu_item", uselist=False) 
+
 class SavedItems(db.Model):
     __tablename__ = "USER_SAVED_ITEMS"
 
@@ -123,13 +125,12 @@ class ProfilePicture(db.Model):
     user_confirmed = relationship("ConfirmedUser", back_populates="profile_pictures")
     user_potential = relationship("PotentialUser", back_populates="profile_pictures")
 
-class MenuPicture(db.Model):
-    __tablename__ = "MENU_ITEM_PICTURE"
+# class MenuPicture(db.Model):
+#     __tablename__ = "MENU_ITEM_PICTURE"
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    item_id =  Column(Integer, ForeignKey('MENU_ITEMS.menu_id'))
-    image_data = Column(BLOB, nullable=False)
-    file_name = Column(VARCHAR(255), nullable=False)
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
-    menu_item = relationship("MenuItem", back_populates="profile_pictures")
-    
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     item_id = Column(Integer, ForeignKey('MENU_ITEMS.menu_id'), unique=True) 
+#     image_data = Column(BLOB, nullable=False)
+#     file_name = Column(VARCHAR(255), nullable=False)
+#     uploaded_at = Column(DateTime, default=datetime.utcnow)
+#     menu_item = relationship("MenuItems", back_populates="item_photo", uselist=False)  

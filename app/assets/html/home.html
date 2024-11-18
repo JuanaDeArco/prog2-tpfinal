@@ -4,19 +4,85 @@
     <meta charset="UTF-8">
     <title>Página de Inicio</title>
     <style>
-    
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #FAF3DD;
+        }
+        h1 {
+            color: #021c91;
+            font-size: 2.5em;
+            font-family: 'Lobster', cursive;
+        }
+        p {
+            font-size: 1.2em;
+            margin: 20px 0;
+            text-align: center;
+            color: #333;
+        }
+        a {
+            display: block;
+            margin: 10px 0;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: white;
+            background-color: #021c91;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+        a:hover {
+            background-color: #003366;
+        }
+        form {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #021c91;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+        input[type="submit"]:hover {
+            background-color: #003366;
+        }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Bienvenido a la Página de Inicio</h1>
-
-    {% if user_type == 'P' %}
-        <p>¡Eres un BOLUDO! Aquí están tus opciones:</p>
-    {% elif user_type == 'G' %}
-        <p>¡Bienvenido, LADRON! Aquí están tus opciones:</p>
-    {% else %}
-        <p>Bienvenido, {{user_type}}. Regístrate o inicia sesión para acceder a más opciones.</p>
-    {% endif %}
-    
+    <div>
+        <h1>Bienvenido a la Página de Inicio</h1>
+        
+        {% if user_type == 'P' %}
+            <p>¡Eres un BOLUDO! Aquí están tus opciones:</p>
+        {% elif user_type == 'G' %}
+            <p>¡Bienvenido, LADRON! Aquí están tus opciones:</p>
+        {% else %}
+            <p>Bienvenido, {{user_type}}. Regístrate o inicia sesión para acceder a más opciones.</p>
+        {% endif %}
+        
+        <form action="/api/meriendas/search" method="POST">
+            <input type="text" name="user_search" placeholder="Buscar" required>
+            <input type="submit" value="Buscar">
+        </form>
+        
+    </div>
 </body>
 </html>
