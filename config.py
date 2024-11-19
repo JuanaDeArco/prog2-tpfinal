@@ -17,8 +17,14 @@ class Config:
 # app.config['SECRET_KEY'] = 'ilovemerienda'
 # app.config['SECURITY_PASSWORD_SALT'] = 'mUakkqoqoEAA9jB7yKg6ilOFnQdxxq9S'
 
-    ## SQLALCHEMY
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///merendar.db'
+    mysql_user=os.environ.get('MYSQL_USER')
+    mysql_password=os.environ.get('MYSQL_PASSWORD')
+    mysql_host=os.environ.get('DATABASE_URL')
+    mysql_port=os.environ.get('DATABASE_PORT')
+    mysql_database=os.environ.get('MYSQL_DATABASE')
+    MYSQL=f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_database}"
+    print(MYSQL)
+    SQLALCHEMY_DATABASE_URI = MYSQL or 'sqlite:///merendar.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECURITY_PASSWORD_SALT = os.environ.get('SECURITY_PASSWORD_SALT') or 'quegustotienelasal'
     # Tokens
