@@ -1,4 +1,4 @@
-from src.MenuItem import MenuItem
+from .MenuItem import MenuItem
 
 class Folder:
     def __init__(self):

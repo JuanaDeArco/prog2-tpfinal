@@ -6,16 +6,14 @@ from flask_restx import Api
 import os
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
+import config
 
 ## IDEA: HACEMOS ESTO COMO FACTORY METHOD
 app = Flask(__name__, 
             template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../assets/html'), static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../assets/static'))
-app.secret_key = "cheesecake"
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:Luchi0803@127.0.0.1/test"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config['SECRET_KEY'] = 'ilovemerienda'
-app.config['SECURITY_PASSWORD_SALT'] = 'mUakkqoqoEAA9jB7yKg6ilOFnQdxxq9S'
 
+app.config.from_object(config.Config)
+app.secret_key=config.Config.user_secret
 engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
 if not database_exists(engine.url):
     create_database(engine.url)
@@ -41,3 +39,4 @@ from .models import db, ConfirmedUser, PotentialUser, ProfilePicture, Folders, M
 db.init_app(app)
 with app.app_context():
     db.create_all()  
+

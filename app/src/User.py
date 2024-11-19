@@ -1,5 +1,5 @@
-from src.Id import Id
-import src.Roles as Roles
+from .Id import Id
+from .Roles import Roles
 class Usuario:
     def __init__(self, 
                  user_first_name: str,

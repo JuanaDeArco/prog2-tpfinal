@@ -1,5 +1,5 @@
-from src.User import Usuario
-from src.Folder import Folder
+from .User import Usuario
+from .Folder import Folder
 class UsuarioPersonal(Usuario):
     def __init__(self, username, password, email):
         super().__init__(username, password, email)

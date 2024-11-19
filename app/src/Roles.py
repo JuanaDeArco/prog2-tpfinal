@@ -1,5 +1,5 @@
-from src.Folder import Folder
-from src.MenuItem import MenuItem
+from .Folder import Folder
+from .MenuItem import MenuItem
 
 class Rol:
     def __init__(self,name) -> None:
