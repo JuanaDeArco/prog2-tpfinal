@@ -50,3 +50,6 @@ docker run --volume=.:/app -p 8080:8080 merendar:0.1
 
 ## Requerimientos
 Tiene que tener una base de datos andando
+
+## Y Docker compose?
+Podes ver lo de docker compose [aca](./compose.md)
