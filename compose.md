@@ -132,6 +132,17 @@ networks:
   * Si no especificamos estos puertos, la api al conectarse al puerto 3306 de la base de datos fallaria, y nosotros al querer pegarle a la url o la api en el 8080 no andaría.
   * Esto se lee como "Puerto Interno: Puerto Externo". El puerto del contenedor (interno) se mapea al puerto del sistema (externo). 
 
+### Pero pará, volume esta vacio!
+```yaml
+volumes:
+  mysql-data:
+```
+Exacto! esto quiere decir
+>An entry under the top-level volumes section can be empty, in which case it uses the container engine's default configuration for creating a volume.
+
+
+O sea: se guarda todo en la carpeta que tenga configurada por defecto el docker en tu maquina
+
 ## Explicame ahora el .env
 El `.env` es un archivo bastante sencillo de leer: es una lista de `NOMBRE_DE_VARIALBES=valor_de_la_variable` que despues el servicio usa de alguna forma
 
