@@ -1,5 +1,5 @@
-from src.User import Usuario
-from src.MenuItem import MenuItem
+from .User import Usuario
+from .MenuItem import MenuItem
 
 class UsuarioGastronomico(Usuario):
     def __init__(self, username, password, email):

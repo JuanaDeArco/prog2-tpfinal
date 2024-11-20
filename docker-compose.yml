@@ -1,0 +1,43 @@
+services:
+  mysql:
+    build:
+      context: ./db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - merendar-network
+
+  api:
+    build:
+      context: .
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      DATABASE_URL: mysql
+      DATABASE_PORT: ${DATABASE_PORT}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_PORT: 3306
+      SECURITY_PASSWORD_SALT: ${SECURITY_PASSWORD_SALT}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+    networks:
+      - merendar-network
+
+
+volumes:
+  mysql-data:
+
+networks:
+  merendar-network: 
