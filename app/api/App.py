@@ -4,14 +4,15 @@ Este es el codigo de la api
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash, current_app
 from flask_restx import Api, Resource, fields, Namespace
 from . import api, app
-import src.Roles as Roles
-from api.Auth import decode_token, generate_token
-import os
+from app.src import Roles
+from .Auth import decode_token, generate_token
 from .models import db, ConfirmedUser, PotentialUser, Folders, Establishments
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
+import os
+import config
 
 
 ns = Namespace("meriendas", description="merienda operations")
@@ -448,12 +449,6 @@ class UserProfile(Resource):
 # UTILS
 #-----------------------------------------------------------------------------------------
 def generate_confirmation_token(email):
-    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    return serializer.dumps(email, salt=current_app.config['SECURITY_PASSWORD_SALT'])
-
-
-if __name__ == "__main__":
-    app = Flask(__name__)
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    serializer = URLSafeTimedSerializer(app.secret_key)
+    return serializer.dumps(email, salt=config.Config.SECURITY_PASSWORD_SALT)
 
