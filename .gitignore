@@ -15,5 +15,5 @@ build/
 .env
 # db
 db/base
-
+*.db
 /app/usuarios.txt

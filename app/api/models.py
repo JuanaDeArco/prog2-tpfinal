@@ -2,7 +2,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String,Float, Text, Date, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mysql import VARCHAR, BLOB
-from datetime import datetime
+from datetime import datetime, timezone
+
 
 db = SQLAlchemy()
 
@@ -138,13 +139,13 @@ class ProfilePicture(db.Model):
     __tablename__ = "PROFILE_PICTURES"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    
+    #TODO Puede que haya una profile pic sin user id (ambos son nulleables)
     confirmed_user_id = Column(Integer, ForeignKey('USERS.id'), nullable=True)
     potential_user_id = Column(Integer, ForeignKey('POTENTIAL_USERS.id'), nullable=True)
     
     image_data = Column(BLOB, nullable=False)
     file_name = Column(VARCHAR(255), nullable=False)
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    uploaded_at = Column(DateTime, default=datetime.now(timezone.utc))
     user_confirmed = relationship("ConfirmedUser", back_populates="profile_pictures")
     user_potential = relationship("PotentialUser", back_populates="profile_pictures")
 
