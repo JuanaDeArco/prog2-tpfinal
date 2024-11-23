@@ -212,6 +212,12 @@ class RegisterPersonal(Resource):
         db.session.add(to_visit)
         db.session.add(visited)
         db.session.commit()
+        if app.config['TESTING'] == True:
+            db.session.delete(new_confirmed_user)
+            db.session.delete(new_user)
+            db.session.delete(to_visit)
+            db.session.delete(visited)
+            db.session.commit()
 
         token = generate_confirmation_token(user_email)
 
@@ -339,6 +345,11 @@ class RegisterGatronomic(Resource):
         db.session.add(new_user)
         db.session.add(new_confirmed_user)
         db.session.commit()
+        if app.config['TESTING'] == True:
+            db.session.delete(new_confirmed_user)
+            db.session.delete(new_user)
+            db.session.commit()
+
 
         return redirect(url_for('confirm_page'))
     

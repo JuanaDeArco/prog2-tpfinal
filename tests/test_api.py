@@ -1,0 +1,86 @@
+from app.api import app, db
+import pytest
+from app.api.models import *
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import url_for
+
+@pytest.fixture
+def client():
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        yield client
+
+
+def test_register_personal_post_all_fields_valid(client):
+    """
+    Tests successful registration with all fields filled correctly.
+    """
+    data = {
+        "user_first_name": "John",
+        "user_last_name": "Doe",
+        "date_of_birth": "2000-01-01",
+        "gender": "M",
+        "user_phone_number": "1234567890",
+        "user_document_type": "DNI",
+        "user_document": "12345678",
+        "user_email": "john.doe@example.com",
+        "user_username": "johndoe",
+        "password": "StrongPassword123!",
+        "user_province": "Buenos Aires",
+        "user_postal_code": "C1000ABC",
+    }
+
+    response = client.post('/api/meriendas/personal', data=data)
+
+    assert response.status_code == 302
+
+def test_confirm(client):
+    response = client.get('/login')
+    assert response.status_code == 200
+
+
+def test_personal_site(client):
+    response = client.get('/personal')
+    assert  response.status_code == 200
+
+def test_personal(client):
+    response = client.get('/api/meriendas/personal')
+    assert  response.status_code == 200
+
+def test_register_gastronomic_site(client):
+    response = client.get('/gastronomic')
+    assert  response.status_code == 200
+
+def test_register_gastronomic(client):
+    data = {
+    "user_nombre_comercial": "Mi Empresa",
+    "user_phone_number": "1234567890",
+    "user_document_type": "CUIT",
+    "user_document": "20-301234567-9",
+    "user_rep_legal": "Juan Perez",
+    "user_province": "Buenos Aires",
+    "user_postal_code": "1414",
+    "user_username": "mi_empresa",
+    "user_email": "miempresa@example.com",
+    "user_raz_soc": "Mi Empresa S.A.",
+    "user_rep_legal_doc": "DNI",
+    "user_address": "Calle Falsa 123",
+    "password": "strongPassword123",
+    "user_type": "G"
+    }
+    response = client.post('/api/meriendas/gastronomic', data=data)
+    assert response.status_code == 302  # Expected redirect
+
+
+def test_index(client):
+    response = client.get('/api/meriendas/')
+    assert response.status_code == 200
+    assert response.json == {'hotel': 'trivago'}
+
+def test_homepage(client):
+    response = client.get('/')
+    assert response.status_code == 200
+
+def test_select(client):
+    response = client.get('/select')
+    assert response.status_code == 200
