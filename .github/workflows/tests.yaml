@@ -25,5 +25,6 @@ jobs:
 
       - name: Corro tests
         run: |
+            export TEST=True
             pip install pytest pytest-cov
             pytest
