@@ -1,28 +1,42 @@
-name: Python CI
+name: Python Tests
+### Este Workflow es para correr los tests creados
 
 on:
   push:
-    branches: [main, feat/ci]
+    branches: [main]
   pull_request:
     branches: [main]
+## Esto va a correr cada vez que se pushee directo a main (cosa que no es buena practica)
+# Y cada vez que alguien haga un pull request hacia main
+
+### Este workflow NO ES CONDICION para que se bloquee el pull request, para eso habria que acticar 
+# Branch protection (https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/managing-a-branch-protection-rule)
+# para que se bloqueen los prs si no pasa este workflow
 
 jobs:
-  build:
+  pytests:
     runs-on: ubuntu-latest
 
     steps:
+        #Hago checkout del repo (clono y git checkour main en el ejecutor del workflow)
       - uses: actions/checkout@v3
 
+        #instalo la version 3.13 de python
       - name: Configuro Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
+        # instalo las dependencias del sistema
       - name: Instalo Dependencias
         run: |
           python -m pip install --upgrade pip
           pip install -r app/requirements.txt
 
+        # exporto las variables de entorno que estan en un .env normal, instalo pytest y lo corro
+        # secrets.SECRETO es la nomenclatura que indica que estos son secretos que estan en el repositorio
+        # Como mejora a futuro podriamos crear ENTORNOS en este repo entonces estos secretos tienen valores distintos
+        # dependiendo si es produccion, dev, stage, etc.
       - name: Corro tests
         run: |
             export MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
