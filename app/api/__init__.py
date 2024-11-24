@@ -23,7 +23,10 @@ else:
     URI=app.config["SQLALCHEMY_DATABASE_URI"]
 
 app.secret_key=config.Config.user_secret
-engine = create_engine(URI)
+try:
+    engine = create_engine(URI)
+except ValueError:
+    print(f">>>>>>>>>>{os.environ.get('TESTING')}")
 if not database_exists(engine.url):
     create_database(engine.url)
 
