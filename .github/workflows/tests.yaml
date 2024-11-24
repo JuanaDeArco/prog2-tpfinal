@@ -23,11 +23,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r app/requirements.txt
 
-      - name: Creo un .env
-        run: |
-            cp .env.ejemplo .env
-
       - name: Corro tests
         run: |
-            pip install pytest pytest-cov
+            export MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+            export MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+            export MYSQL_USER=${{ secrets.MYSQL_USER }}
+            export MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
+            export PORT=${{ secrets.PORT }}
+            export DATABASE_URL=${{ secrets.DATABASE_URL }}
+            export DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+            export SECURITY_PASSWORD_SALT=${{ secrets.SECURITY_PASSWORD_SALT }}
+            export JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            export SECRET_KEY=${{ secrets.SECRET_KEY }}
+            export USER_SECRET_KEY=${{ secrets.USER_SECRET_KEY }}
+            export TESTING=${{ secrets.TESTING }}
+            pip install pytest
             pytest
