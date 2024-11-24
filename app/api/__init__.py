@@ -8,13 +8,25 @@ from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
 import config
 
-## IDEA: HACEMOS ESTO COMO FACTORY METHOD
+
+
 app = Flask(__name__, 
             template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../assets/html'), static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../assets/static'))
 
+
+
 app.config.from_object(config.Config)
+if os.environ.get('TESTING') == 'True':
+    URI='sqlite:///test.db'
+    app.config.from_object(config.ConfigTest)
+else:
+    URI=app.config["SQLALCHEMY_DATABASE_URI"]
+
 app.secret_key=config.Config.user_secret
-engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
+try:
+    engine = create_engine(URI)
+except ValueError:
+    print(f">>>>>>>>>>{os.environ.get('TESTING')}")
 if not database_exists(engine.url):
     create_database(engine.url)
 

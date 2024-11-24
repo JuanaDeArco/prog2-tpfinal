@@ -1,9 +1,12 @@
 name: ci
 
 on:
-  push:
-    branches: [test/actions]
-
+  release:
+    types: [published]
+# Este Workflow se ejecutaria cada vez que querramos hacer un "release". Actualmente de la forma que esta configurado el repo
+# no va a andar, pero si armamos un release (https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
+# podemos pushear esto a dockerhub. 
+# Queda aca para demostrar que se puede hacer, pero no es el workflow normal
 jobs:
   CI:
     runs-on: ubuntu-latest
