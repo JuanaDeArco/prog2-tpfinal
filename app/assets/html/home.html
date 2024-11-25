@@ -30,14 +30,14 @@
             margin: 10px 0;
             padding: 10px 20px;
             text-decoration: none;
-            color: #FF00FF; 
-            background-color: #FF00FF; 
+            color:  #021c91; 
+            background-color:#FAF3DD; 
             border-radius: 5px;
             font-size: 1.2em;
         }
 
         a:hover {
-            background-color: #FF66FF; 
+            background-color: #FAF3DD; 
             color: #021c91; 
         }
         form {
@@ -100,18 +100,17 @@
 <body>
     <div>
         <h1>Bienvenido a la Página de Inicio</h1>
-        
         {% if user_type == 'P' %}
-            <p>¡Eres un {session['username']}! Aquí están tus opciones:</p>
-            <!-- {% if  %}
-                <a href="/user/{{ session['username'] }}" class="button">Ir a tu perfil</a>
+            <p>¡Eres un USUARIO! Aquí están tus opciones:</p>
+            {% if session['username'] %}
+                <a href="{{ url_for('user_page', user=session['username']) }}">Ir a tu perfil</a>
             {% else %}
                 <p>No has iniciado sesión. Por favor, inicia sesión para ver tu perfil.</p>
-            {% endif %} -->
+            {% endif %}
         {% elif user_type == 'G' %}
             <p>¡Bienvenido, COMERCIANTE! Aquí están tus opciones:</p>
             {% if session['username'] %}
-            <a href="/user/{{ session['username'] }}" class="button">Ir a tu perfil</a>
+                <a href="{{ url_for('user_page', user=session['username']) }}">Ir a tu perfil</a>
             {% else %}
                 <p>No has iniciado sesión. Por favor, inicia sesión para ver tu perfil.</p>
             {% endif %}

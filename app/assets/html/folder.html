@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carpeta: {{ folder_name }}</title>
+</head>
+<body>
+    <h1>Carpeta: {{ folder_name }}</h1>
+    <ul>
+        {% for item in content %}
+            <li>
+                <strong>{{ item.item_name }}</strong><br>
+                {{ item.item_description }} - ${{ item.item_price }}
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="/user/{{ username }}">Volver al perfil</a>
+</body>
+</html>
