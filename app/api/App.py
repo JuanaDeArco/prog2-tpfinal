@@ -471,11 +471,23 @@ def user_page(user):
     """ 
     este es el que maneja el front
     """
-    if user == session['username']:
+    if 'username' not in session or user != session['username']:
+        return redirect(url_for('login_page'))
+
+    user_type = session.get("user_type")
+
+    if user_type == "P":
         folders = Folders.query.filter_by(user_id=session['user_id']).all()
-        user_type = session.get("user_type")
-        user = session.get("username")
-        return render_template('perfil.html', user_type=user_type,user = user, folders = folders)
+        return render_template('perfil.html', user_type=user_type, folders = folders, session = session['user_id'])
+    
+    if user_type == "G":
+        est = Establishments.query.filter_by(est_owner_id=session['user_id']).all()
+        app.logger.info(f"la query es - {est}, session_id = {session['user_id']}")
+        if not est:
+            flash('No se encontró un establecimiento para este usuario', 'error')
+            return redirect(url_for('user_page', user=session['username']))
+
+        return render_template('perfil.html', user_type=user_type, items=est, session = session['user_id'])
 
 @ns.route('/user/<name>')
 class UserProfile(Resource):
