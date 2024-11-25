@@ -6,14 +6,13 @@ from flask_restx import Api, Resource, fields, Namespace
 from . import api, app
 from app.src import Roles
 from .Auth import decode_token, generate_token
-from .models import db, ConfirmedUser, PotentialUser, Folders, Establishments
+from .models import db, ConfirmedUser, PotentialUser, Folders, Establishments, MenuItems
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
 import os
 import config
-
 
 ns = Namespace("meriendas", description="merienda operations")
 
@@ -197,18 +196,19 @@ class RegisterPersonal(Resource):
             is_verified=False
         )
 
+        db.session.add(new_user)
+        db.session.add(new_confirmed_user)
+        db.session.commit()
+
         id = new_confirmed_user.id
         to_visit = Folders(user_id = id,
             folder_name = "Por visitar",
-            exclusive = True
-                             )
+            exclusive = True)
+        
         visited = Folders(user_id = id,
             folder_name = "Visitados",
-            exclusive = True
-                             )
-
-        db.session.add(new_user)
-        db.session.add(new_confirmed_user)
+            exclusive = True)
+        
         db.session.add(to_visit)
         db.session.add(visited)
         db.session.commit()
@@ -345,11 +345,31 @@ class RegisterGatronomic(Resource):
         db.session.add(new_user)
         db.session.add(new_confirmed_user)
         db.session.commit()
+
+        
+        id = new_confirmed_user.id
+        if not id:
+            flash("Error: No se generó el ID del usuario confirmado.", "error")
+            return redirect(url_for('register_gastronomic_page'))
+
+        establecimiento = Establishments(
+            est_name = user_nombre_comercial,
+            est_owner_id = id,
+            est_address =  user_address,
+            est_postal_code = user_postal_code,
+            est_es_usuario = True,
+            telefono = user_phone_number,
+            mail = user_email,
+            barrio = user_province,
+        )
+
+        db.session.add(establecimiento)
+        db.session.commit()
+
         if app.config['TESTING'] == True:
             db.session.delete(new_confirmed_user)
             db.session.delete(new_user)
             db.session.commit()
-
 
         return redirect(url_for('confirm_page'))
     
@@ -388,6 +408,7 @@ class Login(Resource):
 
         session["username"] = user.user_username 
         session["user_type"] = user.user_type
+        session['user_id'] = user.id
         return redirect(url_for('home_page'))
 
 @app.route('/home')
@@ -446,15 +467,143 @@ class Search(Resource):
             flash("No se proporciono un valor de busqueda valido", "error")
             return redirect(url_for('search_page'))
 
-##TODO
 @app.route('/user/<user>')
 def user_page(user):
-    return f"Aca va el perfil de {user} - {session['username']}"
+    """ 
+    este es el que maneja el front
+    """
+    if user == session['username']:
+        folders = Folders.query.filter_by(user_id=session['user_id']).all()
+        user_type = session.get("user_type")
+        user = session.get("username")
+        return render_template('perfil.html', user_type=user_type,user = user, folders = folders)
 
 @ns.route('/user/<name>')
 class UserProfile(Resource):
     def get(self, name):
-        pass #LOGICA
+        if 'username' not in session or name != session['username']:
+            return redirect(url_for('login_page'))
+
+        user_type = session.get("user_type")
+
+        if user_type == "P":
+            folders = Folders.query.filter_by(user_id=session['user_id']).all()
+            return render_template('perfil.html', user_type=user_type, folders = folders)
+        if user_type == "G":
+            est = Establishments.query.filter_by(est_owner_id=session.get("user_id")).first()
+            if not est:
+                flash('No se encontró un establecimiento para este usuario', 'error')
+                return redirect(url_for('user_page', user=session['username']))
+
+            return render_template('perfil.html', user_type=user_type, items=est)
+
+@app.route('/user/<user>/<folder>')
+def folder_page(user, folder):
+    if user != session['username']:
+        return redirect(url_for('user_page'))
+
+    folder_data = Folders.query.filter_by(user_id=session['user_id'], folder_name=folder).first()
+    if not folder_data:
+        return "Carpeta no encontrada", 404
+
+    return f"ESTA ES TU CARPETA: {folder_data.folder_name}"
+
+@app.route('/user/create_folder',  methods=['GET', 'POST'])
+def create_folder_page():
+    if request.method == 'POST':
+        folder_name = request.form.get("folder_name")
+        exclusive = request.form.get("exclusive")
+
+        if not all([folder_name, exclusive]):
+            flash('Todos los campos son obligatorios', 'error')
+            return redirect(url_for('create_folder_page'))
+
+        carpeta = Folders(
+            user_id=session['user_id'],
+            folder_name=folder_name,
+            editable=True,
+            exclusive=bool(exclusive)
+        )
+
+        db.session.add(carpeta)
+        db.session.commit()
+
+        if app.config['TESTING'] == True:
+            db.session.add(carpeta)
+            db.session.commit()
+
+        return redirect(url_for('user_page', user=session['username']))
+    
+    return render_template('create_folder.html')
+
+@app.route('/user/create_menu_item',  methods=['GET', 'POST'])
+def create_menu_item():
+    if request.method == 'POST':
+        item_name = request.form.get("item_name")
+        item_description = request.form.get("item_description")
+        item_price = request.form.get("item_price")
+
+        if not all([item_name, item_description, item_price]):
+            flash('Todos los campos son obligatorios', 'error')
+            return redirect(url_for('create_menu_item_page'))
+        
+        est = Establishments.query.filter_by(est_owner_id = session.get('user_id')).first()
+        
+        if est is None:
+            flash('No se encontró un establecimiento para este usuario', 'error')
+            return redirect(url_for('create_menu_item_page'))
+        
+        est_id = est.id
+
+        item = MenuItems(
+            est_id = est_id,
+            item_name = item_name,
+            item_description = item_description,
+            item_price = item_price
+        )
+
+        db.session.add(item)
+        db.session.commit()
+        print(f"Item creado: {item.item_name}, ID: {item.menu_id}, Establecimiento: {item.est_id}")
+
+
+        if app.config['TESTING'] == True:
+            db.session.add(item)
+            db.session.commit()
+
+        return redirect(url_for('user_page', user=session['username']))
+    
+    return render_template('create_item.html')
+
+# @ns.route('/user/create_folder')
+# class CreateFolder(Resource):
+#     def get(self):
+#         return render_template('create_folder.html')
+
+#     def post(self):
+#         folder_name = request.form.get("folder_name")
+#         exclusive = request.form.get("exclusive")
+
+#         if not all([folder_name, exclusive]):
+#             flash('Todos los campos son obligatorios', 'error')
+#             return redirect(url_for('create_folder_page'))
+
+#         carpeta = Folders(
+#             user_id=session['user_id'],
+#             folder_name=folder_name,
+#             editable=True,
+#             exclusive=bool(exclusive)
+#         )
+
+#         db.session.add(carpeta)
+#         db.session.commit()
+
+#         if app.config['TESTING'] == True:
+#             db.session.add(carpeta)
+#             db.session.commit()
+
+#         return redirect(url_for('user_page', user=session['username']))
+
 
 ##----------------------------------------------------------------------------------------
 # UTILS

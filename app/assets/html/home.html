@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Página de Inicio</title>
     <style>
-        body {
+                body {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -30,14 +30,15 @@
             margin: 10px 0;
             padding: 10px 20px;
             text-decoration: none;
-            color: white;
-            background-color: #021c91;
+            color: #FF00FF; 
+            background-color: #FF00FF; 
             border-radius: 5px;
             font-size: 1.2em;
         }
+
         a:hover {
-            background-color: #FAF3DD;
-            color: #021c91;
+            background-color: #FF66FF; 
+            color: #021c91; 
         }
         form {
             margin-top: 20px;
@@ -77,8 +78,6 @@
             outline: none;
             border-color: #D9D2B6;
         }
-
-        /* Flash messages */
         .flash-messages {
             list-style: none; 
             padding: 0;
@@ -97,19 +96,27 @@
         }
 
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
 </head>
 <body>
     <div>
         <h1>Bienvenido a la Página de Inicio</h1>
         
         {% if user_type == 'P' %}
-            <p>¡Eres un USUARIO! Aquí están tus opciones:</p>
+            <p>¡Eres un {session['username']}! Aquí están tus opciones:</p>
+            <!-- {% if  %}
+                <a href="/user/{{ session['username'] }}" class="button">Ir a tu perfil</a>
+            {% else %}
+                <p>No has iniciado sesión. Por favor, inicia sesión para ver tu perfil.</p>
+            {% endif %} -->
         {% elif user_type == 'G' %}
             <p>¡Bienvenido, COMERCIANTE! Aquí están tus opciones:</p>
+            {% if session['username'] %}
+            <a href="/user/{{ session['username'] }}" class="button">Ir a tu perfil</a>
+            {% else %}
+                <p>No has iniciado sesión. Por favor, inicia sesión para ver tu perfil.</p>
+            {% endif %}
         {% else %}
-            <p>Bienvenido, {{user_type}}. Regístrate o inicia sesión para acceder a más opciones.</p>
+            <p>Bienvenido, {{ user_type }}. Regístrate o inicia sesión para acceder a más opciones.</p>
         {% endif %}
         
         <form action="/search" method="GET">
