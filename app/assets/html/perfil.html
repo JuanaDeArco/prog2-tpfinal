@@ -94,6 +94,7 @@
     <h1>Perfil de {{ user }}</h1>
     
     {% if user_type == 'P' %}
+    <h2>{{session}}</h2>
         <h2>Carpetas</h2>
         {% if folders %}
             <ul>
@@ -113,6 +114,7 @@
         </p>
 
     {% elif user_type == 'G' %}
+     <h2>{{session}}</h2>
         <h2>establecimientos</h2>
         {% if items %}
             <ul>

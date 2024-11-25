@@ -345,16 +345,15 @@ class RegisterGatronomic(Resource):
         db.session.add(new_user)
         db.session.add(new_confirmed_user)
         db.session.commit()
-
         
-        id = new_confirmed_user.id
+        owner_id = new_confirmed_user.id
         if not id:
             flash("Error: No se generó el ID del usuario confirmado.", "error")
             return redirect(url_for('register_gastronomic_page'))
 
         establecimiento = Establishments(
             est_name = user_nombre_comercial,
-            est_owner_id = id,
+            est_owner_id = owner_id,
             est_address =  user_address,
             est_postal_code = user_postal_code,
             est_es_usuario = True,
@@ -488,14 +487,16 @@ class UserProfile(Resource):
 
         if user_type == "P":
             folders = Folders.query.filter_by(user_id=session['user_id']).all()
-            return render_template('perfil.html', user_type=user_type, folders = folders)
+            return render_template('perfil.html', user_type=user_type, folders = folders, session = session['user_id'])
+        
         if user_type == "G":
-            est = Establishments.query.filter_by(est_owner_id=session.get("user_id")).first()
+            est = Establishments.query.filter_by(est_owner_id=session['user_id']).all()
+            app.logger.info(f"la query es - {est}, session_id = {session['user_id']}")
             if not est:
                 flash('No se encontró un establecimiento para este usuario', 'error')
                 return redirect(url_for('user_page', user=session['username']))
 
-            return render_template('perfil.html', user_type=user_type, items=est)
+            return render_template('perfil.html', user_type=user_type, items=est, session = session['user_id'])
 
 @app.route('/user/<user>/<folder>')
 def folder_page(user, folder):
