@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Carpeta</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: 
+                url('/static/images/background.jpg') no-repeat center center fixed, 
+                #FAF3DD;
+            background-size: cover;
+        }
+        h1 {
+            color: #FAF3DD;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .form-container {
+            background-color: #021c91;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        label {
+            color: #FAF3DD;
+            font-size: 0.9em;
+            text-align: left;
+        }
+        input[type="text"],
+        select {
+            padding: 6px;
+            font-size: 0.9em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            padding: 8px 20px;
+            font-size: 1em;
+            color: #1C0F13;
+            background-color: #FAF3DD;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #D9D2B6;
+        }
+        .flash-messages {
+            list-style: none; 
+            padding: 0;
+            margin: 0;
+            color: red; 
+            background-color: #f8d7da; 
+            border: 1px solid #f5c6cb; 
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .flash-messages li {
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="form-container">
+        <h1>Crear Nueva Carpeta</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('create_folder_page') }}" method="post">
+            <label for="folder_name">Nombre de la Carpeta:</label>
+            <input type="text" id="folder_name" name="folder_name" required>
+            
+            <label for="exclusive">Exclusiva:</label>
+            <select id="exclusive" name="exclusive" required>
+                <option value="true">Sí</option>
+                <option value="false">No</option>
+            </select>
+            
+            <input type="submit" value="Crear Carpeta">
+        </form>
+    </div>
+</body>
+</html>

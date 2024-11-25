@@ -5,19 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil</title>
 </head>
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+        background: #FAF3DD;
+        background-size: cover;
+    }
+    h1 {
+        color: #021c91;
+        font-size: 2em;
+        margin-bottom: 10px;
+    }
+    .form-container {
+        background-color: #021c91;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 600px;
+        text-align: center;
+        box-sizing: border-box;
+    }
+    form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    label {
+        margin: 5px 0;
+        color: #FAF3DD;
+        font-size: 0.9em;
+        text-align: left;
+    }
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="date"],
+    select {
+        margin-bottom: 10px;
+        padding: 6px;
+        font-size: 0.9em;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    input[type="submit"] {
+        padding: 8px 20px;
+        font-size: 1em;
+        color: #1C0F13;
+        background-color: #FAF3DD;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        grid-column: span 2;  
+    }
+    input[type="submit"]:hover {
+        background-color: #D9D2B6;
+    }
+    .half-column {
+        display: flex;
+        flex-direction: column;
+    }.flash-messages {
+        list-style: none; 
+        padding: 0;
+        margin: 0;
+        color: red; 
+        background-color: #f8d7da; 
+        border: 1px solid #f5c6cb; 
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 20px;
+    }
+    .flash-messages li {
+        margin-bottom: 5px;
+        font-size: 1em;
+    }
+</style>
 <body>
-    <h1>Perfil de {{ user.username }}</h1>
-    <h2>Carpetas</h2>
-    <ul>
-        {% for folder_name, folder in user.folders.items() %}
-            <li>{{ folder_name }}
-                <ul>
-                    {% for item in folder.content %}
-                        <li>{{ item.descripcion }} - ${{ item.precio }}</li>
-                    {% endfor %}
-                </ul>
-            </li>
-        {% endfor %}
-    </ul>
+    <h1>Perfil de {{ user }}</h1>
+    
+    {% if user_type == 'P' %}
+    <h2>{{session}}</h2>
+        <h2>Carpetas</h2>
+        {% if folders %}
+            <ul>
+                {% for folder in folders %}
+                    <li>
+                        <a href="{{ url_for('folder_page', user=user, folder=folder.folder_name) }}">
+                            {{ folder.folder_name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No tienes carpetas disponibles.</p>
+        {% endif %}
+        <p>
+            <a href="{{ url_for('create_folder_page') }}">Crear nueva carpeta</a>
+        </p>
+
+    {% elif user_type == 'G' %}
+     <h2>{{session}}</h2>
+        <h2>establecimientos</h2>
+        {% if items %}
+            <ul>
+                {% for item in items %}
+                    <li>
+                        <h2>{{item.est_name}}</h2>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>no hay establecimientos asociados</p>
+        {% endif %}
+        <p>
+            <a href="{{ url_for('create_menu_item')}}">Crear nuevo item</a>
+        </p>
+    {% endif %}
 </body>
 </html>

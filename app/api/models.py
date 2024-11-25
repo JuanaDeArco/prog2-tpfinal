@@ -97,6 +97,7 @@ class Establishments(db.Model):
     calle_cruce = Column(VARCHAR(200))
     barrio = Column(VARCHAR(200))
     comuna = Column(VARCHAR(200))
+    menu_items = relationship("MenuItems", backref="establishment", cascade="all, delete-orphan")
 
 class Folders(db.Model):
     __tablename__ = "USER_FOLDERS"
