@@ -6,7 +6,7 @@ from flask_restx import Api, Resource, fields, Namespace
 from . import api, app
 from app.src import Roles
 from .Auth import decode_token, generate_token
-from .models import db, ConfirmedUser, PotentialUser, Folders, Establishments, MenuItems
+from .models import db, ConfirmedUser, PotentialUser, Folders, Establishments, MenuItems, SavedItems
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
@@ -520,6 +520,36 @@ def item_public_page(user, item):
         return "No hay un item con ese nombre", 404
 
     return render_template('item_public_details.html', item=menu)
+
+@app.route("save_item/<item>/<establecimiento>",methods=["GET", "POST"])
+def save_item_page(item,establecimiento):
+    folders = Folders.query.filter_by(user_id=session['user_id']).all()
+    if request.method == "POST":
+        folder_id = request.form.get("folder_id")
+        menu_item = MenuItems.query.filter_by(est_id = establecimiento, item_name=item).first()
+
+        if not folder_id or not menu_item:
+            flash("Carpeta o ítem inválido.", "error")
+            return redirect(url_for("save_item_page", item=item, establecimiento=establecimiento))
+
+        saved_item = SavedItems(
+            user_id=session['user_id'],
+            menu_id=menu_item.menu_id,
+            folder_id=folder_id
+        )
+        db.session.add(saved_item)
+        db.session.commit()
+
+        flash("Ítem guardado con éxito.", "success")
+        return redirect(url_for("user_page", user=session["username"]))
+
+    # Renderizar el formulario con carpetas
+    return render_template(
+        "save_item.html",
+        item=item,
+        establecimiento=establecimiento,
+        folders=folders
+    )
 
 @app.route('/user/<user>')
 def user_page(user):

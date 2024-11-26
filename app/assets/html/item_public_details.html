@@ -10,5 +10,8 @@
     <p><strong>Descripción:</strong> {{ item.item_description }}</p>
     <p><strong>Precio:</strong> ${{ item.item_price }}</p>
 
+    <form action="{{ url_for('save_item_page', item=item.item_name, establecimiento=item.est_id) }}" method="get">
+        <button type="submit">Guardar Ítem</button>
+    </form>
 </body>
 </html>
