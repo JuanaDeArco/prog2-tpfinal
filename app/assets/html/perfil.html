@@ -91,10 +91,10 @@
     }
 </style>
 <body>
-    <h1>Perfil de {{ user }}</h1>
+    <h1>Perfil del usuario: {{ user }}. Hola!</h1>
     
     {% if user_type == 'P' %}
-    <h2>{{session}}</h2>
+    <h2>La session tiene estos valores {{session}}</h2>
         <h2>Carpetas</h2>
         {% if folders %}
             <ul>
@@ -115,7 +115,7 @@
 
     {% elif user_type == 'G' %}
      <h2>{{session}}</h2>
-        <h2>establecimientos</h2>
+        <h2>Establecimientos</h2>
         {% if items %}
             <ul>
                 {% for item in items %}
