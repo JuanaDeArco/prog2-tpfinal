@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Promoción</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Crear Promoción para {{ item.item_name }}</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="item_price">Nuevo Precio:</label>
+                <input type="text" id="item_price" name="item_price" required>
+            </div>
+            <button type="submit">Crear Promoción</button>
+        </form>
+        <a href="{{ url_for('menu_page') }}">Volver al Menú</a>
+    </div>
+</body>
+</html>

@@ -136,6 +136,14 @@ class Reviews(db.Model):
     review_rating = Column(Float)
     review_comment = Column(VARCHAR(2000))
 
+class Promotion(db.model):
+    __tablename__ = "PROMOTIONS"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    est_id = Column(Integer, ForeignKey('ESTABLISHMENTS.id'))
+    menu_id = Column(Integer, ForeignKey('MENU_ITEMS.menu_id'))
+    new_price = Column(Float)
+
 class ProfilePicture(db.Model):
     __tablename__ = "PROFILE_PICTURES"
     

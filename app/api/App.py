@@ -6,7 +6,7 @@ from flask_restx import Api, Resource, fields, Namespace
 from . import api, app
 from app.src import Roles
 from .Auth import decode_token, generate_token
-from .models import db, ConfirmedUser, PotentialUser, Folders, Establishments, MenuItems, SavedItems
+from .models import db, ConfirmedUser, PotentialUser, Folders, Establishments, MenuItems, SavedItems,Reviews, Promotion
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
@@ -719,6 +719,66 @@ def edit_item_page(item):
         return "No se encontró el ítem para editar", 404
 
     return render_template('edit_item.html', item=menu_item)
+
+#TODO TOTEST
+@app.route('/create_promotion/<item>', methods=['GET', 'POST'])
+def create_promotion_item_page(item):
+    if request.method == 'POST':
+
+        new_price = request.form.get('item_price')
+
+        est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+        est_id = est.id
+
+        menu_item = MenuItems.query.filter_by(item_name=item, est_id = est_id).first()
+        
+        if not menu_item:
+            return "No se encontró el ítem para editar", 404
+
+        menu_id = menu_item.id
+        promotion = Promotion(
+            est_id = est_id,
+            menu_id = menu_id,
+            new_price = new_price
+        )
+        db.session.add(promotion)
+        db.session.commit()
+
+        flash('Se creo la promocion', 'success')
+        return redirect(url_for('item_page', user=session['username'], item=new_name))
+
+    menu_item = MenuItems.query.filter_by(item_name=item).first()
+    if not menu_item:
+        return "No se encontró el ítem para editar", 404
+
+    return render_template('edit_item.html', item=menu_item)
+
+@app.route("/review/<item>", methods=['GET', 'POST'])
+def review_item_page(item):
+    est_id = session.get('est_id')  # Assuming est_id is stored in the session
+    menu_item = MenuItems.query.filter_by(item_name=item, est_id=est_id).first()
+    
+    if not menu_item:
+        return "No se encontró el ítem para editar", 404
+
+    if request.method == 'POST':
+        rating = request.form.get('rating')
+        comment = request.form.get('comment')
+        
+        review = Reviews(
+            user_id=session["user_id"],
+            menu_id=menu_item.id,
+            review_rating=rating,
+            review_comment=comment
+        )
+        
+        db.session.add(review)
+        db.session.commit()
+        
+        flash('Reseña creada con éxito', 'success')
+        return redirect(url_for('item_page', user=session['username'], item=item))
+
+    return render_template('review_item.html', item=menu_item)
 
 # @ns.route('/user/create_folder')
 # class CreateFolder(Resource):
