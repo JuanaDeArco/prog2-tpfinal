@@ -512,7 +512,7 @@ class UserProfile(Resource):
 
             return render_template('perfil.html', user_type=user_type, items=menu, user=session['username'], session = est_id)
 
-@app.route('/user/<user>/<folder>')
+@app.route('/user/<user>/folder/<folder>')
 def folder_page(user, folder):
     if user != session['username']:
         return redirect(url_for('user_page'))
@@ -589,6 +589,51 @@ def create_menu_item():
         return redirect(url_for('user_page', user=session['username']))
     
     return render_template('create_item.html')
+
+@app.route('/user/<user>/item/<item>')
+def item_page(user, item):
+    if user != session['username']:
+        return redirect(url_for('user_page'))
+
+    est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+    est_id = est.id
+    menu = MenuItems.query.filter_by(est_id = est_id, item_name = item ).first()
+    if not menu:
+        return "No hay un item con ese nombre", 404
+
+    return render_template('item_details.html', item=menu, user=user)
+
+@app.route('/edit_item/<item>', methods=['GET', 'POST'])
+def edit_item_page(item):
+    if request.method == 'POST':
+
+        new_name = request.form.get('item_name')
+        new_description = request.form.get('item_description')
+        new_price = request.form.get('item_price')
+
+        est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+        est_id = est.id
+
+        menu_item = MenuItems.query.filter_by(item_name=item, est_id = est_id).first()
+        if not menu_item:
+            return "No se encontró el ítem para editar", 404
+        if new_name:
+            menu_item.item_name = new_name
+        if new_description:
+            menu_item.item_description = new_description
+        if new_price:
+            menu_item.item_price = float(new_price)
+
+        db.session.commit()
+
+        flash('Ítem actualizado con éxito', 'success')
+        return redirect(url_for('item_page', user=session['username'], item=new_name))
+
+    menu_item = MenuItems.query.filter_by(item_name=item).first()
+    if not menu_item:
+        return "No se encontró el ítem para editar", 404
+
+    return render_template('edit_item.html', item=menu_item)
 
 # @ns.route('/user/create_folder')
 # class CreateFolder(Resource):

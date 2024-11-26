@@ -120,9 +120,9 @@
             <ul>
                 {% for item in items %}
                     <li>
-                        <h2>{{item.item_name}}</h2>
-                        <h3>{{item.item_description}}</h3>
-                        <h3>{{item.item_price}}</h3>
+                        <a href="{{ url_for('item_page', user=user, item=item.item_name) }}">
+                            {{ item.item_name }}
+                        </a>
                     </li>
                 {% endfor %}
             </ul>
