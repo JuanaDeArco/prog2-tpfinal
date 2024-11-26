@@ -481,13 +481,14 @@ def user_page(user):
         return render_template('perfil.html', user_type=user_type, folders = folders, user=session['username'], session = session)
     
     if user_type == "G":
-        est = Establishments.query.filter_by(est_owner_id=session['user_id']).all()
-        app.logger.info(f"la query es - {est}, session_id = {session['user_id']}")
+        est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+        est_id = est.id
+        menu = MenuItems.query.filter_by(est_id = est_id).all()
         if not est:
             flash('No se encontró un establecimiento para este usuario', 'error')
             return redirect(url_for('user_page', user=session['username']))
 
-        return render_template('perfil.html', user_type=user_type, items=est, user=session['username'], session = session)
+        return render_template('perfil.html', user_type=user_type, items=menu, user=session['username'], session = est_id)
 
 @ns.route('/user/<name>')
 class UserProfile(Resource):
@@ -502,13 +503,14 @@ class UserProfile(Resource):
             return render_template('perfil.html', user_type=user_type, folders = folders, session = session['user_id'])
         
         if user_type == "G":
-            est = Establishments.query.filter_by(est_owner_id=session['user_id']).all()
-            app.logger.info(f"la query es - {est}, session_id = {session['user_id']}")
+            est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+            est_id = est.id
+            menu = MenuItems.query.filter_by(est_id = est_id).all()
             if not est:
                 flash('No se encontró un establecimiento para este usuario', 'error')
                 return redirect(url_for('user_page', user=session['username']))
 
-            return render_template('perfil.html', user_type=user_type, items=est, user=session['username'], session = session)
+            return render_template('perfil.html', user_type=user_type, items=menu, user=session['username'], session = est_id)
 
 @app.route('/user/<user>/<folder>')
 def folder_page(user, folder):

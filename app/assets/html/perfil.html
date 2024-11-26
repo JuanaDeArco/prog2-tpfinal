@@ -120,7 +120,9 @@
             <ul>
                 {% for item in items %}
                     <li>
-                        <h2>{{item.est_name}}</h2>
+                        <h2>{{item.item_name}}</h2>
+                        <h3>{{item.item_description}}</h3>
+                        <h3>{{item.item_price}}</h3>
                     </li>
                 {% endfor %}
             </ul>
