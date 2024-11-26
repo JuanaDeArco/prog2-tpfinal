@@ -156,7 +156,7 @@ def Reviewsfixture(Confirmeduserfixture,Menuitemsfixture):
 @pytest.fixture(autouse=True)
 def cleanup_db(monkeypatch):
     """
-    Teardown de los cambios que hago con la base de datos
+    Si en algún momento se me escapó borrar algo, con esto hago un rollback
     """
 
     def teardown():
@@ -167,9 +167,15 @@ def cleanup_db(monkeypatch):
 
 
 def test_create_confirmed_user(Confirmeduserfixture):
+    """
+    Test para verificar la creación de un usuario confirmado
+    """
     assert Confirmeduserfixture.id is not None
 
 def test_confirmed_user_data_empty():
+    """
+    Verifica que no se pueda crear un usuario si los campos obligatorios estan vacios
+    """
     user = ConfirmedUser()
     with pytest.raises(exc.IntegrityError):
         with app.app_context():
@@ -178,21 +184,39 @@ def test_confirmed_user_data_empty():
 
 
 def test_create_potential_user(Potentialuserfixture):
+    """
+    Test para verificar la creación de un usuario pendiente
+    """
     assert Potentialuserfixture.id is not None
 
 def test_create_establishment(Establishmentfixture):
+    """
+    Test para verificar la creación de un restaurante
+    """
     assert Establishmentfixture is not None
 
 def test_create_folder(Foldersfixture):
+    """
+    Test para verificar la creación de una carpeta
+    """
     assert Foldersfixture is not None
 
 def test_crete_menu_item(Menuitemsfixture):
+    """
+    Test para verificar la creación de un plato
+    """
     assert Menuitemsfixture is not None
 
 def test_create_saved_item(Saveditemsfixture):
+    """
+    Test para verificar que se puedan guardar items
+    """
     assert Saveditemsfixture is not None
 
 def test_create_profile_pic_with_confirmed(Confirmeduserfixture):
+    """
+    Test para verificar que pueda agregar foto de perfil
+    """
     pf = ProfilePicture(
         confirmed_user_id   = Confirmeduserfixture.id,
         image_data          = b'test_image_data',
@@ -206,6 +230,9 @@ def test_create_profile_pic_with_confirmed(Confirmeduserfixture):
     assert pf.user_confirmed is Confirmeduserfixture
 
 def test_create_profile_pic_with_potential(Potentialuserfixture):
+    """
+    Test para verificar la foto de perfil (en usuarios pendientes)
+    """
     pf = ProfilePicture(
         potential_user_id   = Potentialuserfixture.id,
         image_data          = b'test_image_data',

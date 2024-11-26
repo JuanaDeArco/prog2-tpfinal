@@ -13,7 +13,7 @@ def client():
 
 def test_register_personal_post_all_fields_valid(client):
     """
-    Tests successful registration with all fields filled correctly.
+    Testea la creacion de un usuario desde la API en si
     """
     data = {
         "user_first_name": "John",
@@ -35,23 +35,38 @@ def test_register_personal_post_all_fields_valid(client):
     assert response.status_code == 302
 
 def test_confirm(client):
+    """
+    Verifica que la pagina /login existe
+    """
     response = client.get('/login')
     assert response.status_code == 200
 
 
 def test_personal_site(client):
+    """
+    Verifica que /personal exista
+    """
     response = client.get('/personal')
     assert  response.status_code == 200
 
 def test_personal(client):
+    """
+    Verifica que el endpoint de personal exista
+    """
     response = client.get('/api/meriendas/personal')
     assert  response.status_code == 200
 
 def test_register_gastronomic_site(client):
+    """
+    Verifica que la pagina exista
+    """
     response = client.get('/gastronomic')
     assert  response.status_code == 200
 
 def test_register_gastronomic(client):
+    """
+    Testea la creación de un usuario gastronómico desde la API en si
+    """
     data = {
     "user_nombre_comercial": "Mi Empresa",
     "user_phone_number": "1234567890",
@@ -73,14 +88,23 @@ def test_register_gastronomic(client):
 
 
 def test_index(client):
+    """
+    Verifica que exista el endpoint de meriendas y que devuelva el json adecuado
+    """
     response = client.get('/api/meriendas/')
     assert response.status_code == 200
     assert response.json == {'hotel': 'trivago'}
 
 def test_homepage(client):
+    """
+    Verifica que exista la página
+    """
     response = client.get('/')
     assert response.status_code == 200
 
 def test_select(client):
+    """
+    Verifica que exista la página
+    """
     response = client.get('/select')
     assert response.status_code == 200

@@ -478,7 +478,7 @@ def user_page(user):
 
     if user_type == "P":
         folders = Folders.query.filter_by(user_id=session['user_id']).all()
-        return render_template('perfil.html', user_type=user_type, folders = folders, session = session['user_id'])
+        return render_template('perfil.html', user_type=user_type, folders = folders, user=session['username'], session = session)
     
     if user_type == "G":
         est = Establishments.query.filter_by(est_owner_id=session['user_id']).all()
@@ -487,7 +487,7 @@ def user_page(user):
             flash('No se encontró un establecimiento para este usuario', 'error')
             return redirect(url_for('user_page', user=session['username']))
 
-        return render_template('perfil.html', user_type=user_type, items=est, session = session['user_id'])
+        return render_template('perfil.html', user_type=user_type, items=est, user=session['username'], session = session)
 
 @ns.route('/user/<name>')
 class UserProfile(Resource):
@@ -508,7 +508,7 @@ class UserProfile(Resource):
                 flash('No se encontró un establecimiento para este usuario', 'error')
                 return redirect(url_for('user_page', user=session['username']))
 
-            return render_template('perfil.html', user_type=user_type, items=est, session = session['user_id'])
+            return render_template('perfil.html', user_type=user_type, items=est, user=session['username'], session = session)
 
 @app.route('/user/<user>/<folder>')
 def folder_page(user, folder):
