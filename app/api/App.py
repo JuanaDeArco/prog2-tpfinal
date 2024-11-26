@@ -424,14 +424,43 @@ class Home(Resource):
         # search = request.form.get("user_search")
         return redirect(url_for("search_page"))
 
-@app.route('/search')
+@app.route('/search', methods=['GET', 'POST'])
 def search_page():
-    user_search = request.args.get('user_search')
-    if user_search:
-        return render_template('search_results.html', user_search=user_search)
+    user_search = request.args.get('user_search') or request.form.get('user_search')
+    search_criteria = request.args.get('search_criteria') or request.form.get('search_criteria')
+
+    if not user_search:
+        flash("No se proporcionó ningún término de búsqueda.", "error")
+        return render_template('search_results.html', establishments=[], user_search="")
+
+    if not search_criteria:
+        flash("No se proporcionó un criterio de búsqueda.", "error")
+        return render_template('search_results.html', establishments=[], user_search=user_search)
+
+    results = []
+    if search_criteria == "postal_code":
+        results = Establishments.query.filter(Establishments.est_postal_code.ilike(f"%{user_search}%")).all()
+    elif search_criteria == "neighborhood":
+        results = Establishments.query.filter(Establishments.barrio.ilike(f"%{user_search}%")).all()
+    elif search_criteria == "name":
+        results = Establishments.query.filter(Establishments.est_name.ilike(f"%{user_search}%")).all()
+    elif search_criteria == "user":
+        results = ConfirmedUser.query.filter(ConfirmedUser.user_username.ilike(f"%{user_search}%")).all()
+    elif search_criteria == "item":
+        results = (
+            db.session.query(MenuItems, Establishments)
+            .join(Establishments, MenuItems.est_id == Establishments.id)
+            .filter(MenuItems.item_name.ilike(f"%{user_search}%"))
+            .all()
+        )
     else:
-        return "No se proporcionó ningún término de búsqueda."
-    
+        flash("Criterio de búsqueda no válido.", "error")
+        return redirect(url_for('search_page'))
+
+    if not results:
+        flash("No se encontraron resultados.", "warning")
+    return render_template('search_results.html', establishments=results, user_search=user_search, search_criteria = search_criteria)
+
 @ns.route('/search')
 class Search(Resource):
     def get(self):
@@ -446,25 +475,51 @@ class Search(Resource):
         search_criteria = request.args.get('search_criteria')
         if user_search:
             if search_criteria == "postal_code":
-                establishments = Establishments.query.filter(Establishments.est_postal_code == user_search)
+                results = Establishments.query.filter(Establishments.est_postal_code.ilike(str(user_search))).all()
             elif search_criteria == "neighborhood":
-                establishments = Establishments.query.filter(Establishments.neighborhood == user_search)
+                results = Establishments.query.filter(Establishments.barrio.ilike(user_search)).all()
             elif search_criteria == "name":
-                establishments = Establishments.query.filter(Establishments.name.contains(user_search))
+                results = Establishments.query.filter(Establishments.est_name.ilike(user_search)).all()
             elif search_criteria == "user":
-                establishments = Establishments.query.filter(Establishments.user.contains(user_search))
+                results = ConfirmedUser.query.filter(ConfirmedUser.user_username.ilike(user_search)).all()
+            elif search_criteria == "item":
+                results = MenuItems.query.filter(MenuItems.item_name.ilike(user_search)).all()
             else:
                 flash("Criterio de búsqueda no válido.", "error")
                 return redirect(url_for('search_page'))
             
-            if establishments:
-                return render_template('search_results.html', establishments=establishments, user_search=user_search)
+            if results:
+                return render_template('search_results.html', establishments=results, user_search=user_search)
             else:
                 flash("No se encontraron establecimientos para la busqueda", "error")
                 return redirect(url_for('search_page'))
         else:
             flash("No se proporciono un valor de busqueda valido", "error")
             return redirect(url_for('search_page'))
+        
+@app.route('/establecimiento/<user>')
+def user_public_page(user):
+    """ 
+    este es el que maneja el front
+    """
+    establecimiento = Establishments.query.filter_by(est_name=user).first()
+    est_id = establecimiento.id
+    menu = MenuItems.query.filter_by(est_id = est_id).all()
+    if not establecimiento:
+        flash('No se encontró un establecimiento para este usuario', 'error')
+        return redirect(url_for('user_public_page', user=user))
+
+    return render_template('perfil_public.html', items=menu, user=user, session = est_id)
+
+@app.route('/establecimiento/<user>/item/<item>')
+def item_public_page(user, item):
+    est = Establishments.query.filter_by(est_name=user).first()
+    est_id = est.id
+    menu = MenuItems.query.filter_by(est_id = est_id, item_name = item ).first()
+    if not menu:
+        return "No hay un item con ese nombre", 404
+
+    return render_template('item_public_details.html', item=menu)
 
 @app.route('/user/<user>')
 def user_page(user):
