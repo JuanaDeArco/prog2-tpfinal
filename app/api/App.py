@@ -518,13 +518,17 @@ def item_public_page(user, item):
     menu = MenuItems.query.filter_by(est_id = est_id, item_name = item ).first()
     if not menu:
         return "No hay un item con ese nombre", 404
+    
+    reviews = Reviews.query.filter_by(menu_id = menu.menu_id).all()
 
-    return render_template('item_public_details.html', item=menu)
+    return render_template('item_public_details.html', item=menu, reviews = reviews)
 
-@app.route("save_item/<item>/<establecimiento>",methods=["GET", "POST"])
+@app.route("/save_item/<item>/<establecimiento>",methods=["GET", "POST"])
 def save_item_page(item,establecimiento):
     folders = Folders.query.filter_by(user_id=session['user_id']).all()
     if request.method == "POST":
+        est_name = Establishments.query.filter_by(id = establecimiento).first()
+        est_nombre = est_name.est_name
         folder_id = request.form.get("folder_id")
         menu_item = MenuItems.query.filter_by(est_id = establecimiento, item_name=item).first()
 
@@ -543,7 +547,6 @@ def save_item_page(item,establecimiento):
         flash("Ítem guardado con éxito.", "success")
         return redirect(url_for("user_page", user=session["username"]))
 
-    # Renderizar el formulario con carpetas
     return render_template(
         "save_item.html",
         item=item,
@@ -563,7 +566,7 @@ def user_page(user):
 
     if user_type == "P":
         folders = Folders.query.filter_by(user_id=session['user_id']).all()
-        return render_template('perfil.html', user_type=user_type, folders = folders, user=session['username'], session = session)
+        return render_template('perfil.html', user_type=user_type, folders = folders, user=session['username'])
     
     if user_type == "G":
         est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
@@ -573,7 +576,7 @@ def user_page(user):
             flash('No se encontró un establecimiento para este usuario', 'error')
             return redirect(url_for('user_page', user=session['username']))
 
-        return render_template('perfil.html', user_type=user_type, items=menu, user=session['username'], session = est_id)
+        return render_template('perfil.html', user_type=user_type, items=menu, user=session['username'])
 
 @ns.route('/user/<name>')
 class UserProfile(Resource):
@@ -605,8 +608,23 @@ def folder_page(user, folder):
     folder_data = Folders.query.filter_by(user_id=session['user_id'], folder_name=folder).first()
     if not folder_data:
         return "Carpeta no encontrada", 404
+    
+    content = SavedItems.query.filter_by(folder_id=folder_data.folder_id).all()
+    items = [MenuItems.query.get(item.menu_id) for item in content]
 
-    return f"ESTA ES TU CARPETA: {folder_data.folder_name}"
+    reviews = Reviews.query.filter_by(user_id=session['user_id']).all()
+    reviewed_menu_ids =  {review.menu_id: review.review_rating for review in reviews}
+
+    items_with_reviews = [
+        {
+            'item': item,
+            'has_review': item.menu_id in reviewed_menu_ids,
+            'review_rating': reviewed_menu_ids.get(item.menu_id, None)  
+        }
+        for item in items
+    ]
+
+    return render_template('folder.html', folder_name=folder_data.folder_name, items=items_with_reviews, user = session["username"])
 
 @app.route('/user/create_folder',  methods=['GET', 'POST'])
 def create_folder_page():
@@ -720,43 +738,9 @@ def edit_item_page(item):
 
     return render_template('edit_item.html', item=menu_item)
 
-#TODO TOTEST
-@app.route('/create_promotion/<item>', methods=['GET', 'POST'])
-def create_promotion_item_page(item):
-    if request.method == 'POST':
-
-        new_price = request.form.get('item_price')
-
-        est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
-        est_id = est.id
-
-        menu_item = MenuItems.query.filter_by(item_name=item, est_id = est_id).first()
-        
-        if not menu_item:
-            return "No se encontró el ítem para editar", 404
-
-        menu_id = menu_item.id
-        promotion = Promotion(
-            est_id = est_id,
-            menu_id = menu_id,
-            new_price = new_price
-        )
-        db.session.add(promotion)
-        db.session.commit()
-
-        flash('Se creo la promocion', 'success')
-        return redirect(url_for('item_page', user=session['username'], item=new_name))
-
-    menu_item = MenuItems.query.filter_by(item_name=item).first()
-    if not menu_item:
-        return "No se encontró el ítem para editar", 404
-
-    return render_template('edit_item.html', item=menu_item)
-
 @app.route("/review/<item>", methods=['GET', 'POST'])
 def review_item_page(item):
-    est_id = session.get('est_id')  # Assuming est_id is stored in the session
-    menu_item = MenuItems.query.filter_by(item_name=item, est_id=est_id).first()
+    menu_item = MenuItems.query.filter_by(item_name=item).first()
     
     if not menu_item:
         return "No se encontró el ítem para editar", 404
@@ -767,7 +751,7 @@ def review_item_page(item):
         
         review = Reviews(
             user_id=session["user_id"],
-            menu_id=menu_item.id,
+            menu_id=menu_item.menu_id,
             review_rating=rating,
             review_comment=comment
         )
@@ -776,9 +760,40 @@ def review_item_page(item):
         db.session.commit()
         
         flash('Reseña creada con éxito', 'success')
-        return redirect(url_for('item_page', user=session['username'], item=item))
+        return redirect(url_for('folder_page', user=session['username'], folder="Visitados"))
 
     return render_template('review_item.html', item=menu_item)
+
+
+@app.route('/create_promotion', methods=['GET', 'POST'])
+def create_promotion_item_page():
+    est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+    est_id = est.id
+
+    if request.method == 'POST':
+        menu_item_name = request.form.get('item_name')
+        new_price = request.form.get('item_price')
+
+        menu_item_id = MenuItems.query.filter_by(item_name=menu_item_name, est_id = est_id).first()
+        
+        if not menu_item_id:
+            return f"No se encontró el ítem para editar {menu_item_name} - {new_price} - {est_id} - {session['user_id']}", 404
+
+        menu_id = menu_item_id.menu_id
+        promotion = Promotion(
+            est_id = est_id,
+            menu_id = menu_id,
+            new_price = new_price
+        )
+        db.session.add(promotion)
+        db.session.commit()
+
+        flash('Se creo la promocion', 'success')
+        return redirect(url_for('user_page', user=session['username']))
+
+    menu_items = MenuItems.query.filter_by(est_id=est_id).all()
+    return render_template('create_promotion_item.html', menu_items=menu_items)
+
 
 # @ns.route('/user/create_folder')
 # class CreateFolder(Resource):

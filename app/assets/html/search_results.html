@@ -95,7 +95,11 @@
                 <tbody>
                     {% for establishment in establishments %}
                         <tr>
-                            <td>{{ establishment.est_name }}</td>
+                            <td>
+                                <a href="{{ url_for('user_public_page', user=establishment.est_name) }}">
+                                    {{ establishment.est_name }}
+                                </a>
+                            </td>
                             <td>{{ establishment.est_postal_code }}</td>
                             <td>{{ establishment.est_address }}</td>
                         </tr>

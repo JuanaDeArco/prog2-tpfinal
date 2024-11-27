@@ -6,16 +6,22 @@
     <title>Crear Promoción</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Crear Promoción para {{ item.item_name }}</h1>
-        <form method="POST">
-            <div class="form-group">
-                <label for="item_price">Nuevo Precio:</label>
-                <input type="text" id="item_price" name="item_price" required>
-            </div>
-            <button type="submit">Crear Promoción</button>
-        </form>
-        <a href="{{ url_for('menu_page') }}">Volver al Menú</a>
-    </div>
+    <h1>Crear Promoción</h1>
+    <form method="POST">
+        <label for="item_name">Selecciona un ítem:</label>
+        <select name="item_name" id="item_name" required>
+            <option value="" disabled selected>-- Selecciona un ítem --</option>
+            {% for item in menu_items %}
+            <option value="{{ item.item_name }}">{{ item.item_name }}</option>
+            {% endfor %}
+        </select>
+    
+        <label for="item_price">Nuevo Precio:</label>
+        <input type="number" name="item_price" id="item_price" step="0.01" min="0" required>
+    
+        <button type="submit">Crear Promoción</button>
+    </form>   
+
+    <a href="{{ url_for('user_page', user=session['username']) }}">Volver</a>
 </body>
 </html>

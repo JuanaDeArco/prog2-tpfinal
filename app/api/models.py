@@ -136,7 +136,7 @@ class Reviews(db.Model):
     review_rating = Column(Float)
     review_comment = Column(VARCHAR(2000))
 
-class Promotion(db.model):
+class Promotion(db.Model):
     __tablename__ = "PROMOTIONS"
 
     id = Column(Integer, primary_key=True, autoincrement=True)

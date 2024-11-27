@@ -13,5 +13,18 @@
     <form action="{{ url_for('save_item_page', item=item.item_name, establecimiento=item.est_id) }}" method="get">
         <button type="submit">Guardar Ítem</button>
     </form>
+    <h2>Reseñas</h2>
+    <ul>
+        {% for review in reviews %}
+            <li>
+                <strong>Calificación:</strong> {{ review.review_rating }}<br>
+                <strong>Comentario:</strong> {{ review.review_comment }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if reviews.has_next %}
+        <a href="{{ url_for('item_public_page', user=user, item=item.item_name, page=reviews.next_num) }}">Mostrar más reseñas</a>
+    {% endif %}
 </body>
 </html>
