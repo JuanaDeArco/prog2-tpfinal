@@ -108,3 +108,40 @@ def test_select(client):
     """
     response = client.get('/select')
     assert response.status_code == 200
+
+def test_search_redirect_no_token(client):
+    """
+    Verifica que el search no sea accesible sin token
+    Si no hay un token, la logica del sitio es redireccionar al home, asi que el status code es 302
+    """
+    response = client.get('/search')
+    
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/'
+
+def test_home_redirect_no_token(client):
+    """
+    Verifica que haya un redirect cuando no hay token
+    Si no hay token, redirecciona (302) y va al home
+    """
+    response = client.get('/home')
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/'
+
+def test_create_menu_item_redirect_no_token(client):
+    """
+    Verifica que haya un redirect cuando no hay token
+    en el endpoint de crear menu item
+    """
+    response = client.get('/user/create_menu_item')
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/'
+
+def test_create_folder_redirect_no_token(client):
+    """
+    Verifica que haya un redirect cuando no hay token
+    en crear folders
+    """
+    response = client.get('/user/create_folder')
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/'

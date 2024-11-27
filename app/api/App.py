@@ -1,17 +1,19 @@
 """
 Este es el codigo de la api
 """
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash, current_app
+from flask import render_template, request, redirect, url_for, jsonify, session, flash, current_app
 from flask_restx import Api, Resource, fields, Namespace
 from . import api, app
 from app.src import Roles
 from .Auth import decode_token, generate_token
 from .models import db, ConfirmedUser, PotentialUser, Folders, Followers, Establishments, MenuItems, SavedItems,Reviews, Promotion
-from datetime import datetime
+from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
-import os
+from flask_mail import Mail, Message
+
 import config
+
 
 ns = Namespace("meriendas", description="merienda operations")
 
@@ -378,6 +380,7 @@ def confirm_page():
 @app.route('/login')
 def login_page():
     return render_template('login.html')
+
 @ns.route('/login')
 class Login(Resource):
     def get(self):
@@ -404,30 +407,58 @@ class Login(Resource):
             flash("Contraseña incorrecta.", "error")
             return redirect(url_for('login_page'))
 
-        session["username"] = user.user_username 
+        session['username'] = user.user_username 
         session["user_type"] = user.user_type
         session['user_id'] = user.id
+        session['token'] = generate_token(user.user_username)
+        session['Authorization'] = session['token']
+        app.logger.debug(f'DEBUG>>>> Login for {session["token"]}, {session["user_id"]}, {session["user_type"]}, {session["username"]}')
+        app.logger.debug(f'url for {url_for("api.meriendas_home")}')
         return redirect(url_for('home_page'))
+        
 
 @app.route('/home')
 def home_page():
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            flash('Sesion terminada por inactividad', 'error')
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash('Tenes que estar logueade para Merendar!', 'error')
+        return redirect(url_for('Index'))
+    app.logger.debug('Estoy en app./home con un GET')
     user_type = session.get("user_type")
     return render_template('home.html', user_type=user_type)
 
-@ns.route("home")
+@ns.route("/home")
 class Home(Resource):
+    @token_required
     def get(self):
+        app.logger.debug('Estoy en ns./home con un GET')
         user_type = session.get("user_type")
         return render_template('home.html', user_type=user_type)
+    @token_required
     def push(self):
         # search = request.form.get("user_search")
         return redirect(url_for("search_page"))
 
 @app.route('/search', methods=['GET', 'POST'])
 def search_page():
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
     user_search = request.args.get('user_search') or request.form.get('user_search')
     search_criteria = request.args.get('search_criteria') or request.form.get('search_criteria')
-
     if not user_search:
         flash("No se proporcionó ningún término de búsqueda.", "error")
         return render_template('search_results.html', establishments=[], user_search="")
@@ -460,8 +491,15 @@ def search_page():
         flash("No se encontraron resultados.", "warning")
     return render_template('search_results.html', establishments=results, user_search=user_search, search_criteria = search_criteria)
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Gracias por merendar! :)', 'info')
+    return redirect(url_for('Index'))
+
 @ns.route('/search')
 class Search(Resource):
+    @token_required
     def get(self):
         user_search = request.args.get('user_search')
         if user_search:
@@ -469,6 +507,7 @@ class Search(Resource):
         else:
             flash("No se proporciono un valor de busqueda valido", "error")
             return redirect(url_for('search_page'))
+    @token_required
     def push(self):
         user_search = request.args.get('user_search')
         search_criteria = request.args.get('search_criteria')
@@ -583,7 +622,18 @@ def user_page(user):
     este es el que maneja el front
     """
     if 'username' not in session or user != session['username']:
+        flash('Por favor logueate :D', 'error')
         return redirect(url_for('login_page'))
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
 
     user_type = session.get("user_type")
 
@@ -603,6 +653,7 @@ def user_page(user):
 
 @ns.route('/user/<name>')
 class UserProfile(Resource):
+    @token_required
     def get(self, name):
         if 'username' not in session or name != session['username']:
             return redirect(url_for('login_page'))
@@ -625,8 +676,30 @@ class UserProfile(Resource):
 
 @app.route('/user/<user>/folder/<folder>')
 def folder_page(user, folder):
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            flash("No se puede buscar sin loguearte antes ;)", "error")
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
     if user != session['username']:
+        flash('Por favor logueate antes :D', "error")
         return redirect(url_for('user_page'))
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
+
 
     folder_data = Folders.query.filter_by(user_id=session['user_id'], folder_name=folder).first()
     if not folder_data:
@@ -651,6 +724,17 @@ def folder_page(user, folder):
 
 @app.route('/user/create_folder',  methods=['GET', 'POST'])
 def create_folder_page():
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            flash("No se puede buscar sin loguearte antes ;)", "error")
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
+
     if request.method == 'POST':
         folder_name = request.form.get("folder_name")
         exclusive = request.form.get("exclusive")
@@ -679,6 +763,17 @@ def create_folder_page():
 
 @app.route('/user/create_menu_item',  methods=['GET', 'POST'])
 def create_menu_item():
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            flash("No se puede buscar sin loguearte antes ;)", "error")
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
+
     if request.method == 'POST':
         item_name = request.form.get("item_name")
         item_description = request.form.get("item_description")
@@ -718,6 +813,16 @@ def create_menu_item():
 
 @app.route('/user/<user>/item/<item>')
 def item_page(user, item):
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
     if user != session['username']:
         return redirect(url_for('user_page'))
 
@@ -733,6 +838,16 @@ def item_page(user, item):
 
 @app.route('/edit_item/<item>', methods=['GET', 'POST'])
 def edit_item_page(item):
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
     if request.method == 'POST':
 
         new_name = request.form.get('item_name')
@@ -765,6 +880,16 @@ def edit_item_page(item):
 
 @app.route("/review/<item>", methods=['GET', 'POST'])
 def review_item_page(item):
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
     menu_item = MenuItems.query.filter_by(item_name=item).first()
     
     if not menu_item:
@@ -792,6 +917,16 @@ def review_item_page(item):
 
 @app.route('/create_promotion', methods=['GET', 'POST'])
 def create_promotion_item_page():
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
     est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
     est_id = est.id
 
@@ -818,6 +953,7 @@ def create_promotion_item_page():
 
     menu_items = MenuItems.query.filter_by(est_id=est_id).all()
     return render_template('create_promotion_item.html', menu_items=menu_items)
+
 
 
 # @ns.route('/user/create_folder')

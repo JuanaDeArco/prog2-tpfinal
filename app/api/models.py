@@ -12,8 +12,8 @@ class ConfirmedUser(db.Model):
 
     ##comun a ambos
     id = Column(Integer, primary_key=True, autoincrement=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     user_phone_number = Column(VARCHAR(15),unique=True, nullable=False)
     user_email = Column(VARCHAR(200), unique=True, nullable=False)
     user_province = Column(VARCHAR(100)) 
@@ -46,8 +46,8 @@ class PotentialUser(db.Model):
 
     ##comun a ambos
     id = Column(Integer, primary_key=True, autoincrement=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     user_phone_number = Column(VARCHAR(15),unique=True, nullable=False)
     user_email = Column(VARCHAR(200), unique=True, nullable=False)
     user_province = Column(VARCHAR(100)) 
@@ -172,5 +172,5 @@ class ProfilePicture(db.Model):
 #     item_id = Column(Integer, ForeignKey('MENU_ITEMS.menu_id'), unique=True) 
 #     image_data = Column(BLOB, nullable=False)
 #     file_name = Column(VARCHAR(255), nullable=False)
-#     uploaded_at = Column(DateTime, default=datetime.utcnow)
+#     uploaded_at = Column(DateTime, default=datetime.now(timezone.utc))
 #     menu_item = relationship("MenuItems", back_populates="item_photo", uselist=False)  
