@@ -1,7 +1,7 @@
 """
 Este es el codigo de la api
 """
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash, current_app
+from flask import render_template, request, redirect, url_for, jsonify, session, flash, current_app
 from flask_restx import Api, Resource, fields, Namespace
 from . import api, app
 from app.src import Roles
@@ -422,10 +422,11 @@ def home_page():
         data = decode_token(session['token'])
         if data['exp'] <= datetime.now(timezone.utc).timestamp():
             #token expired
-            print(session['roto'])
+            flash('Sesion terminada por inactividad', 'error')
             return redirect(url_for('Index'))
     except KeyError:
         session.clear()
+        flash('Tenes que estar logueade para Merendar!', 'error')
         return redirect(url_for('Index'))
     app.logger.debug('Estoy en app./home con un GET')
     user_type = session.get("user_type")
@@ -466,7 +467,6 @@ def logout():
     session.clear()
     flash('Gracias por merendar! :)', 'info')
     return redirect(url_for('Index'))
-
 
 @ns.route('/search')
 class Search(Resource):
@@ -562,6 +562,16 @@ class UserProfile(Resource):
 
 @app.route('/user/<user>/<folder>')
 def folder_page(user, folder):
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            flash("No se puede buscar sin loguearte antes ;)", "error")
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
     if user != session['username']:
         flash('Por favor logueate antes :D', "error")
         return redirect(url_for('user_page'))
@@ -672,19 +682,7 @@ def create_menu_item():
     
     return render_template('create_item.html')
 
-token_request = api.model(
-    "Token Request" , {
-        "username": fields.String(required=True, description="Nombre de usuario"),
-        "password=": fields.Nested(user, description="El usuario"),
-    }
-)
 
-@ns.route('/gettoken')
-class GetToken(Resource):
-    @ns.expect(token_request)
-    @ns.marshal_with(token_request)
-    def post(self):
-        pass
 
 # @ns.route('/user/create_folder')
 # class CreateFolder(Resource):
