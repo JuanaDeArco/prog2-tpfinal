@@ -1,14 +1,17 @@
+from flask import Flask, request, jsonify
 import jwt
+from datetime import datetime, timedelta,timezone
+from . import app
 
-# Este es la "private key" del jwt que se generen. Esto deberia estar afuera
-# en un archivo de config o extraido desde una variable de entorno con os.environ
-secret_key = 'Misecreto'
 
-def generate_token(data):
-    """
-    Genera un token jwt usando la libreria jwt
-    """
-    token = jwt.encode(data, secret_key, algorithm='HS256')
+
+# Función para generar un token JWT
+def generate_token(username):
+    expiration = datetime.now(timezone.utc) + timedelta(minutes=3) # Token expira en 3 minutos
+    token = jwt.encode({
+        'username': username,
+        'exp': expiration
+    }, app.config['SECRET_KEY'], algorithm='HS256')
     return token
 
 def decode_token(token):
@@ -19,10 +22,26 @@ def decode_token(token):
     tira un invalid token
     """
     try:
-        data = jwt.decode(token, secret_key, algorithms=['HS256'])
+        data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
         return data
     except jwt.ExpiredSignatureError:
         return 'Token expirado. Está rancio!'
     except jwt.InvalidTokenError:
         return 'Token inválido. Esta super rancio!'
 
+
+def token_required(f):
+ def decorated(*args, **kwargs):
+    token = request.headers.get('Authorization') # Token se pasa en el encabezado
+    app.logger.debug(f'token {token}')
+    if not token:
+        return jsonify({'message': 'Token is missing!'}), 401
+    try:
+        data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        current_user = data['username']
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired!'}), 403
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token!'}), 403
+    return f(current_user, *args, **kwargs)
+ return decorated
