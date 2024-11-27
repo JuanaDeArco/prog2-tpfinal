@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String,Float, Text, Date, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.mysql import VARCHAR, BLOB
+from sqlalchemy.dialects.mysql import VARCHAR, BLOB,LONGTEXT
 from datetime import datetime, timezone
 
 
@@ -89,7 +89,7 @@ class Establishments(db.Model):
     categoria = Column(VARCHAR(200))
     cocina = Column(VARCHAR(200))
     ambientacion = Column(VARCHAR(200))
-    telefono = Column(VARCHAR(20))
+    telefono = Column(String(length=100))
     mail = Column(VARCHAR(100))
     horario = Column(VARCHAR(200))
     calle_nombre = Column(VARCHAR(200))
