@@ -144,6 +144,13 @@ class Promotion(db.Model):
     menu_id = Column(Integer, ForeignKey('MENU_ITEMS.menu_id'))
     new_price = Column(Float)
 
+class Followers(db.Model):
+    __tablename__ = "FOLLOWS"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    follower_id = Column(Integer, ForeignKey('USERS.id'))
+    followed_id = Column(Integer, ForeignKey('USERS.id'))
+
 class ProfilePicture(db.Model):
     __tablename__ = "PROFILE_PICTURES"
     

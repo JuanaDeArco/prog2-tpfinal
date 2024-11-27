@@ -106,5 +106,14 @@
         {% else %}
             <p>no hay establecimientos asociados</p>
         {% endif %}
+        {% if not already_following %}
+            <form action="{{ url_for('follow_establishment_page', user=user) }}" method="POST">
+                <button type="submit">Seguir este establecimiento</button>
+            </form>
+        {% else %}
+            <p>Ya seguis a este establecimiento!</p>
+            <p>sorry si te arrepentiste, no llegamos a codear tanto</p>
+        {% endif %}
+</body>
 </body>
 </html>

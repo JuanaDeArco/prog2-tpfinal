@@ -6,7 +6,7 @@ from flask_restx import Api, Resource, fields, Namespace
 from . import api, app
 from app.src import Roles
 from .Auth import decode_token, generate_token
-from .models import db, ConfirmedUser, PotentialUser, Folders, Establishments, MenuItems, SavedItems,Reviews, Promotion
+from .models import db, ConfirmedUser, PotentialUser, Folders, Followers, Establishments, MenuItems, SavedItems,Reviews, Promotion
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
@@ -508,8 +508,32 @@ def user_public_page(user):
     if not establecimiento:
         flash('No se encontró un establecimiento para este usuario', 'error')
         return redirect(url_for('user_public_page', user=user))
+    
+    already_following = Followers.query.filter_by(
+        follower_id=session["user_id"],
+        followed_id=est_id
+    ).first() is not None
 
-    return render_template('perfil_public.html', items=menu, user=user, session = est_id)
+    return render_template('perfil_public.html', items=menu, user=user, session = est_id , already_following=already_following)
+
+@app.route("/follow/<user>", methods=["POST"])
+def follow_establishment_page(user):
+    estab = Establishments.query.filter_by(est_name=user).first()
+    if not estab:
+        flash('El establecimiento no existe.', 'error')
+        return redirect(url_for('user_public_page', user=user))
+
+    est_id = estab.id
+    follow = Followers(
+        follower_id=session["user_id"],
+        followed_id=est_id
+    )
+    db.session.add(follow)
+    db.session.commit()
+
+    flash(f"Ahora sigues al establecimiento {user}.", "success")
+    return redirect(url_for('user_public_page', user=user))
+
 
 @app.route('/establecimiento/<user>/item/<item>')
 def item_public_page(user, item):

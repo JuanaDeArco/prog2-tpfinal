@@ -63,7 +63,7 @@ app.register_blueprint(views)
 from .App import ns as ns_api
 api.add_namespace(ns_api)
 
-from .models import db, ConfirmedUser, PotentialUser, ProfilePicture, Folders, MenuItems, SavedItems, Reviews, Establishments
+from .models import db, ConfirmedUser, PotentialUser, ProfilePicture, Folders, MenuItems, SavedItems, Reviews, Establishments, Promotion, Followers
 db.init_app(app)
 with app.app_context():
     db.create_all()  
