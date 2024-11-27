@@ -73,4 +73,4 @@ with app.app_context():
     populate_table_from_csv(csv_file_path,Establishments,db.session)
 
 with open("app/assets/static/arte.txt") as f:
-    print(f.read())
+    print(f.read(), flush=True)
