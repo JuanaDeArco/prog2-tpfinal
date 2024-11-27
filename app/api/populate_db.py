@@ -10,7 +10,7 @@ def populate_table_from_csv(csv_path, model_class, db_session):
     if 'calle_altura' in df.columns:
         df['calle_altura'] = df['calle_altura'].fillna(0).astype(float)
 
-    for row in DataFrameIterator(csv_path):
+    for row in iterator.DataFrameIterator(csv_path):
         establishment = model_class(
                 est_name=row['nombre'],
                 est_address=row['direccion_completa'],
@@ -30,4 +30,5 @@ def populate_table_from_csv(csv_path, model_class, db_session):
                 barrio=row['barrio'],
                 comuna=row['comuna']
             )
+        db_session.add(establishment)
     db_session.commit()

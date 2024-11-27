@@ -5,7 +5,7 @@ from flask import render_template, request, redirect, url_for, jsonify, session,
 from flask_restx import Api, Resource, fields, Namespace
 from . import api, app
 from app.src import Roles
-from .Auth import decode_token, generate_token
+from .Auth import decode_token, generate_token, token_required
 from .models import db, ConfirmedUser, PotentialUser, Folders, Followers, Establishments, MenuItems, SavedItems,Reviews, Promotion
 from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -412,8 +412,7 @@ class Login(Resource):
         session['user_id'] = user.id
         session['token'] = generate_token(user.user_username)
         session['Authorization'] = session['token']
-        app.logger.debug(f'DEBUG>>>> Login for {session["token"]}, {session["user_id"]}, {session["user_type"]}, {session["username"]}')
-        app.logger.debug(f'url for {url_for("api.meriendas_home")}')
+        app.logger.debug(f'DEBUG>>>> Login for, {session["user_id"]}, {session["user_type"]}, {session["username"]}')
         return redirect(url_for('home_page'))
         
 
