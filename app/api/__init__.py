@@ -1,7 +1,7 @@
 """
 Sub módulo de api. Aca estaria la definición de la API y la URL
 """
-from flask import Blueprint, Flask, render_template
+from flask import Blueprint, Flask
 from flask_restx import Api
 import os
 from sqlalchemy import create_engine
@@ -41,7 +41,7 @@ app.secret_key=config.Config.user_secret
 try:
     engine = create_engine(URI)
 except ValueError:
-    print(f">>>>>>>>>>{os.environ.get('TESTING')}")
+    app.logger.critical(f">>>>>>>>>>{os.environ.get('TESTING')}")
 if not database_exists(engine.url):
     create_database(engine.url)
 
@@ -53,7 +53,7 @@ api = Api(
     api_blueprint,
     version="1.0",
     title="MerendAR",
-    description="Merendate esta",
+    description="Una Api con Bizcochitos. Esto es EXPERIMENTAL",
     doc='/docs'
 )
 
@@ -72,4 +72,5 @@ with app.app_context():
     app.logger.debug('Meto datos mock de establishments')
     populate_table_from_csv(csv_file_path,Establishments,db.session)
 
-
+with open("app/assets/static/arte.txt") as f:
+    print(f.read())
