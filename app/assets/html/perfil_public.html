@@ -91,34 +91,13 @@
     }
 </style>
 <body>
-    <h1>Perfil de {{ user }}</h1>
-    
-    {% if user_type == 'P' %}
-        <h2>Carpetas</h2>
-        {% if folders %}
-            <ul>
-                {% for folder in folders %}
-                    <li>
-                        <a href="{{ url_for('folder_page', user=user, folder=folder.folder_name) }}">
-                            {{ folder.folder_name }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No tienes carpetas disponibles.</p>
-        {% endif %}
-        <p>
-            <a href="{{ url_for('create_folder_page') }}">Crear nueva carpeta</a>
-        </p>
-
-    {% elif user_type == 'G' %}
-        <h2>Establecimientos</h2>
+    <h1>Perfil del establecimiento: {{ user }}</h1>
+        <h2>items</h2>
         {% if items %}
             <ul>
                 {% for item in items %}
                     <li>
-                        <a href="{{ url_for('item_page', user=user, item=item.item_name) }}">
+                        <a href="{{ url_for('item_public_page', user=user, item=item.item_name) }}">
                             {{ item.item_name }}
                         </a>
                     </li>
@@ -127,14 +106,14 @@
         {% else %}
             <p>no hay establecimientos asociados</p>
         {% endif %}
-        <p>
-            <a href="{{ url_for('create_menu_item')}}">Crear nuevo item</a>
-        </p>
-        <p>
-            <a href="{{ url_for('create_promotion_item_page')}}">Crear nueva promoción</a>
-        </p>
-    {% endif %}
-    <p>            <a href="/logout">Logout</a>
-    </p>
+        {% if not already_following %}
+            <form action="{{ url_for('follow_establishment_page', user=user) }}" method="POST">
+                <button type="submit">Seguir este establecimiento</button>
+            </form>
+        {% else %}
+            <p>Ya seguis a este establecimiento!</p>
+            <p>sorry si te arrepentiste, no llegamos a codear tanto</p>
+        {% endif %}
+</body>
 </body>
 </html>

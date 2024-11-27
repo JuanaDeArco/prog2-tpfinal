@@ -3,19 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carpeta: {{ folder_name }}</title>
+    <title>{{ folder_name }}</title>
 </head>
 <body>
     <h1>Carpeta: {{ folder_name }}</h1>
     <ul>
-        {% for item in content %}
+        {% for item in items %}
             <li>
-                <strong>{{ item.item_name }}</strong><br>
-                {{ item.item_description }} - ${{ item.item_price }}
+                <p>{{ item.item.item_name }}</p>
+                <p>{{ item.item.item_description }}</p>
+                <p>${{ item.item.item_price }}</p>
+                <li>
+                    {% if item.has_review %}
+                        <span>(Reseña: {{ item.review_rating }})</span>
+                    {% else %}
+                        {% if folder_name == 'Visitados' %}
+                            <a href="{{ url_for('review_item_page', item=item.item.item_name) }}">
+                                <button>Reseñar</button>
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </li>
             </li>
         {% endfor %}
     </ul>
-    <a href="/user/{{ username }}">Volver al perfil</a>
+    <a href="{{ url_for('user_page', user = user) }}">Volver</a>
     <a href="/logout">Logout</a>
 
 </body>

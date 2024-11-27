@@ -77,7 +77,6 @@
     </style>
 </head>
 <body>
-
     <div class="search-info">
         <h1>Encontrado para: {{ user_search }}</h1>
     </div>
@@ -85,6 +84,7 @@
     {% if establishments %}
         <div class="queue-container">
             <table class="results-table">
+                {% if search_criteria in ["postal_code", "neighborhood", "name"] %}
                 <thead>
                     <tr>
                         <th>Nombre</th>
@@ -95,12 +95,57 @@
                 <tbody>
                     {% for establishment in establishments %}
                         <tr>
-                            <td>{{ establishment.name }}</td>
+                            <td>
+                                <a href="{{ url_for('user_public_page', user=establishment.est_name) }}">
+                                    {{ establishment.est_name }}
+                                </a>
+                            </td>
                             <td>{{ establishment.est_postal_code }}</td>
-                            <td>{{ establishment.address }}</td>
+                            <td>{{ establishment.est_address }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
+                {% elif search_criteria == "user" %}
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Tipo de Usuario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for establishment in establishments %}
+                        <tr>
+                            <td>{{ establishment.user_username }}</td>
+                            <td>
+                                {{ "Personal" if establishment.user_type == "P" else "Gastronómico" }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                {% elif search_criteria == "item" %}
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Precio</th>
+                            <th>Establecimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item, establishment in establishments %}
+                            <tr>
+                                <td>{{ item.item_name }}</td>
+                                <td>{{ item.item_description }}</td>
+                                <td>{{ item.item_price }}</td>
+                                <td>
+                                    <a href="{{ url_for('user_public_page', user=establishment.est_name) }}">
+                                        {{ establishment.est_name }}
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>                
+                {% endif %}
             </table>
         </div>
     {% else %}
@@ -109,6 +154,5 @@
 
     <a href="{{ url_for('home_page') }}" class="back-link">Volver a Buscar</a>
     <a href="/logout">Logout</a>
-
 </body>
 </html>

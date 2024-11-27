@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Promoción</title>
+</head>
+<body>
+    <h1>Crear Promoción</h1>
+    <form method="POST">
+        <label for="item_name">Selecciona un ítem:</label>
+        <select name="item_name" id="item_name" required>
+            <option value="" disabled selected>-- Selecciona un ítem --</option>
+            {% for item in menu_items %}
+            <option value="{{ item.item_name }}">{{ item.item_name }}</option>
+            {% endfor %}
+        </select>
+    
+        <label for="item_price">Nuevo Precio:</label>
+        <input type="number" name="item_price" id="item_price" step="0.01" min="0" required>
+    
+        <button type="submit">Crear Promoción</button>
+    </form>   
+
+    <a href="{{ url_for('user_page', user=session['username']) }}">Volver</a>
+</body>
+</html>

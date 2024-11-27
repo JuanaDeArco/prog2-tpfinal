@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil</title>
+    <title>Guardar Ítem</title>
 </head>
 <style>
     body {
@@ -14,11 +13,12 @@
         height: 100vh;
         margin: 0;
         font-family: 'Roboto', sans-serif;
-        background: #FAF3DD;
+        background:
+            #FAF3DD;
         background-size: cover;
     }
     h1 {
-        color: #021c91;
+        color:  #021c91;
         font-size: 2em;
         margin-bottom: 10px;
     }
@@ -41,7 +41,7 @@
     }
     label {
         margin: 5px 0;
-        color: #FAF3DD;
+        color:  #021c91;
         font-size: 0.9em;
         text-align: left;
     }
@@ -91,50 +91,17 @@
     }
 </style>
 <body>
-    <h1>Perfil de {{ user }}</h1>
-    
-    {% if user_type == 'P' %}
-        <h2>Carpetas</h2>
-        {% if folders %}
-            <ul>
-                {% for folder in folders %}
-                    <li>
-                        <a href="{{ url_for('folder_page', user=user, folder=folder.folder_name) }}">
-                            {{ folder.folder_name }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No tienes carpetas disponibles.</p>
-        {% endif %}
-        <p>
-            <a href="{{ url_for('create_folder_page') }}">Crear nueva carpeta</a>
-        </p>
+    <h1>Guardar Ítem: {{ item }}</h1>
+    <p>Establecimiento: {{ establecimiento }}</p>
 
-    {% elif user_type == 'G' %}
-        <h2>Establecimientos</h2>
-        {% if items %}
-            <ul>
-                {% for item in items %}
-                    <li>
-                        <a href="{{ url_for('item_page', user=user, item=item.item_name) }}">
-                            {{ item.item_name }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>no hay establecimientos asociados</p>
-        {% endif %}
-        <p>
-            <a href="{{ url_for('create_menu_item')}}">Crear nuevo item</a>
-        </p>
-        <p>
-            <a href="{{ url_for('create_promotion_item_page')}}">Crear nueva promoción</a>
-        </p>
-    {% endif %}
-    <p>            <a href="/logout">Logout</a>
-    </p>
+    <form action="" method="post">
+        <label for="folder">Selecciona una carpeta:</label>
+        <select name="folder_id" id="folder" required>
+            {% for folder in folders %}
+                <option value="{{ folder.folder_id }}">{{ folder.folder_name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Guardar</button>
+    </form>
 </body>
 </html>

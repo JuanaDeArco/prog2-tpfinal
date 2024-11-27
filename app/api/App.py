@@ -6,11 +6,12 @@ from flask_restx import Api, Resource, fields, Namespace
 from . import api, app
 from app.src import Roles
 from .Auth import decode_token, generate_token, token_required
-from .models import db, ConfirmedUser, PotentialUser, Folders, Establishments, MenuItems
+from .models import db, ConfirmedUser, PotentialUser, Folders, Followers, Establishments, MenuItems, SavedItems,Reviews, Promotion
 from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
+
 import config
 
 
@@ -411,8 +412,7 @@ class Login(Resource):
         session['user_id'] = user.id
         session['token'] = generate_token(user.user_username)
         session['Authorization'] = session['token']
-        app.logger.debug(f'DEBUG>>>> Login for {session["token"]}, {session["user_id"]}, {session["user_type"]}, {session["username"]}')
-        app.logger.debug(f'url for {url_for("api.meriendas_home")}')
+        app.logger.debug(f'DEBUG>>>> Login for, {session["user_id"]}, {session["user_type"]}, {session["username"]}')
         return redirect(url_for('home_page'))
         
 
@@ -444,7 +444,7 @@ class Home(Resource):
         # search = request.form.get("user_search")
         return redirect(url_for("search_page"))
 
-@app.route('/search')
+@app.route('/search', methods=['GET', 'POST'])
 def search_page():
     try:
         data = decode_token(session['token'])
@@ -456,11 +456,39 @@ def search_page():
         session.clear()
         flash("No se puede buscar sin loguearte antes ;)", "error")
         return redirect(url_for('Index'))
-    user_search = request.args.get('user_search')
-    if user_search:
-        return render_template('search_results.html', user_search=user_search)
+    user_search = request.args.get('user_search') or request.form.get('user_search')
+    search_criteria = request.args.get('search_criteria') or request.form.get('search_criteria')
+    if not user_search:
+        flash("No se proporcionó ningún término de búsqueda.", "error")
+        return render_template('search_results.html', establishments=[], user_search="")
+
+    if not search_criteria:
+        flash("No se proporcionó un criterio de búsqueda.", "error")
+        return render_template('search_results.html', establishments=[], user_search=user_search)
+
+    results = []
+    if search_criteria == "postal_code":
+        results = Establishments.query.filter(Establishments.est_postal_code.ilike(f"%{user_search}%")).all()
+    elif search_criteria == "neighborhood":
+        results = Establishments.query.filter(Establishments.barrio.ilike(f"%{user_search}%")).all()
+    elif search_criteria == "name":
+        results = Establishments.query.filter(Establishments.est_name.ilike(f"%{user_search}%")).all()
+    elif search_criteria == "user":
+        results = ConfirmedUser.query.filter(ConfirmedUser.user_username.ilike(f"%{user_search}%")).all()
+    elif search_criteria == "item":
+        results = (
+            db.session.query(MenuItems, Establishments)
+            .join(Establishments, MenuItems.est_id == Establishments.id)
+            .filter(MenuItems.item_name.ilike(f"%{user_search}%"))
+            .all()
+        )
     else:
-        return "No se proporcionó ningún término de búsqueda."
+        flash("Criterio de búsqueda no válido.", "error")
+        return redirect(url_for('search_page'))
+
+    if not results:
+        flash("No se encontraron resultados.", "warning")
+    return render_template('search_results.html', establishments=results, user_search=user_search, search_criteria = search_criteria)
 
 @app.route('/logout')
 def logout():
@@ -484,25 +512,108 @@ class Search(Resource):
         search_criteria = request.args.get('search_criteria')
         if user_search:
             if search_criteria == "postal_code":
-                establishments = Establishments.query.filter(Establishments.est_postal_code == user_search)
+                results = Establishments.query.filter(Establishments.est_postal_code.ilike(str(user_search))).all()
             elif search_criteria == "neighborhood":
-                establishments = Establishments.query.filter(Establishments.neighborhood == user_search)
+                results = Establishments.query.filter(Establishments.barrio.ilike(user_search)).all()
             elif search_criteria == "name":
-                establishments = Establishments.query.filter(Establishments.name.contains(user_search))
+                results = Establishments.query.filter(Establishments.est_name.ilike(user_search)).all()
             elif search_criteria == "user":
-                establishments = Establishments.query.filter(Establishments.user.contains(user_search))
+                results = ConfirmedUser.query.filter(ConfirmedUser.user_username.ilike(user_search)).all()
+            elif search_criteria == "item":
+                results = MenuItems.query.filter(MenuItems.item_name.ilike(user_search)).all()
             else:
                 flash("Criterio de búsqueda no válido.", "error")
                 return redirect(url_for('search_page'))
             
-            if establishments:
-                return render_template('search_results.html', establishments=establishments, user_search=user_search)
+            if results:
+                return render_template('search_results.html', establishments=results, user_search=user_search)
             else:
                 flash("No se encontraron establecimientos para la busqueda", "error")
                 return redirect(url_for('search_page'))
         else:
             flash("No se proporciono un valor de busqueda valido", "error")
             return redirect(url_for('search_page'))
+        
+@app.route('/establecimiento/<user>')
+def user_public_page(user):
+    """ 
+    este es el que maneja el front
+    """
+    establecimiento = Establishments.query.filter_by(est_name=user).first()
+    est_id = establecimiento.id
+    menu = MenuItems.query.filter_by(est_id = est_id).all()
+    if not establecimiento:
+        flash('No se encontró un establecimiento para este usuario', 'error')
+        return redirect(url_for('user_public_page', user=user))
+    
+    already_following = Followers.query.filter_by(
+        follower_id=session["user_id"],
+        followed_id=est_id
+    ).first() is not None
+
+    return render_template('perfil_public.html', items=menu, user=user, session = est_id , already_following=already_following)
+
+@app.route("/follow/<user>", methods=["POST"])
+def follow_establishment_page(user):
+    estab = Establishments.query.filter_by(est_name=user).first()
+    if not estab:
+        flash('El establecimiento no existe.', 'error')
+        return redirect(url_for('user_public_page', user=user))
+
+    est_id = estab.id
+    follow = Followers(
+        follower_id=session["user_id"],
+        followed_id=est_id
+    )
+    db.session.add(follow)
+    db.session.commit()
+
+    flash(f"Ahora sigues al establecimiento {user}.", "success")
+    return redirect(url_for('user_public_page', user=user))
+
+
+@app.route('/establecimiento/<user>/item/<item>')
+def item_public_page(user, item):
+    est = Establishments.query.filter_by(est_name=user).first()
+    est_id = est.id
+    menu = MenuItems.query.filter_by(est_id = est_id, item_name = item ).first()
+    if not menu:
+        return "No hay un item con ese nombre", 404
+    
+    reviews = Reviews.query.filter_by(menu_id = menu.menu_id).all()
+
+    return render_template('item_public_details.html', item=menu, reviews = reviews)
+
+@app.route("/save_item/<item>/<establecimiento>",methods=["GET", "POST"])
+def save_item_page(item,establecimiento):
+    folders = Folders.query.filter_by(user_id=session['user_id']).all()
+    if request.method == "POST":
+        est_name = Establishments.query.filter_by(id = establecimiento).first()
+        est_nombre = est_name.est_name
+        folder_id = request.form.get("folder_id")
+        menu_item = MenuItems.query.filter_by(est_id = establecimiento, item_name=item).first()
+
+        if not folder_id or not menu_item:
+            flash("Carpeta o ítem inválido.", "error")
+            return redirect(url_for("save_item_page", item=item, establecimiento=establecimiento))
+
+        saved_item = SavedItems(
+            user_id=session['user_id'],
+            menu_id=menu_item.menu_id,
+            folder_id=folder_id
+        )
+        db.session.add(saved_item)
+        db.session.commit()
+
+        flash("Ítem guardado con éxito.", "success")
+        return redirect(url_for("user_page", user=session["username"]))
+
+    return render_template(
+        "save_item.html",
+        item=item,
+        establecimiento=establecimiento,
+        folders=folders
+    )
 
 @app.route('/user/<user>')
 def user_page(user):
@@ -527,16 +638,17 @@ def user_page(user):
 
     if user_type == "P":
         folders = Folders.query.filter_by(user_id=session['user_id']).all()
-        return render_template('perfil.html', user_type=user_type, folders = folders, user=session['username'], session = session)
+        return render_template('perfil.html', user_type=user_type, folders = folders, user=session['username'])
     
     if user_type == "G":
-        est = Establishments.query.filter_by(est_owner_id=session['user_id']).all()
-        app.logger.info(f"la query es - {est}, session_id = {session['user_id']}")
+        est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+        est_id = est.id
+        menu = MenuItems.query.filter_by(est_id = est_id).all()
         if not est:
             flash('No se encontró un establecimiento para este usuario', 'error')
             return redirect(url_for('user_page', user=session['username']))
 
-        return render_template('perfil.html', user_type=user_type, items=est, user=session['username'], session = session)
+        return render_template('perfil.html', user_type=user_type, items=menu, user=session['username'])
 
 @ns.route('/user/<name>')
 class UserProfile(Resource):
@@ -552,15 +664,16 @@ class UserProfile(Resource):
             return render_template('perfil.html', user_type=user_type, folders = folders, session = session['user_id'])
         
         if user_type == "G":
-            est = Establishments.query.filter_by(est_owner_id=session['user_id']).all()
-            app.logger.info(f"la query es - {est}, session_id = {session['user_id']}")
+            est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+            est_id = est.id
+            menu = MenuItems.query.filter_by(est_id = est_id).all()
             if not est:
                 flash('No se encontró un establecimiento para este usuario', 'error')
                 return redirect(url_for('user_page', user=session['username']))
 
-            return render_template('perfil.html', user_type=user_type, items=est, user=session['username'], session = session)
+            return render_template('perfil.html', user_type=user_type, items=menu, user=session['username'], session = est_id)
 
-@app.route('/user/<user>/<folder>')
+@app.route('/user/<user>/folder/<folder>')
 def folder_page(user, folder):
     try:
         data = decode_token(session['token'])
@@ -590,8 +703,23 @@ def folder_page(user, folder):
     folder_data = Folders.query.filter_by(user_id=session['user_id'], folder_name=folder).first()
     if not folder_data:
         return "Carpeta no encontrada", 404
+    
+    content = SavedItems.query.filter_by(folder_id=folder_data.folder_id).all()
+    items = [MenuItems.query.get(item.menu_id) for item in content]
 
-    return f"ESTA ES TU CARPETA: {folder_data.folder_name}"
+    reviews = Reviews.query.filter_by(user_id=session['user_id']).all()
+    reviewed_menu_ids =  {review.menu_id: review.review_rating for review in reviews}
+
+    items_with_reviews = [
+        {
+            'item': item,
+            'has_review': item.menu_id in reviewed_menu_ids,
+            'review_rating': reviewed_menu_ids.get(item.menu_id, None)  
+        }
+        for item in items
+    ]
+
+    return render_template('folder.html', folder_name=folder_data.folder_name, items=items_with_reviews, user = session["username"])
 
 @app.route('/user/create_folder',  methods=['GET', 'POST'])
 def create_folder_page():
@@ -681,6 +809,149 @@ def create_menu_item():
         return redirect(url_for('user_page', user=session['username']))
     
     return render_template('create_item.html')
+
+@app.route('/user/<user>/item/<item>')
+def item_page(user, item):
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
+    if user != session['username']:
+        return redirect(url_for('user_page'))
+
+    est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+    est_id = est.id
+    menu = MenuItems.query.filter_by(est_id = est_id, item_name = item ).first()
+    if not menu:
+        return "No hay un item con ese nombre", 
+
+    reviews = Reviews.query.filter_by(menu_id = menu.menu_id).all()
+
+    return render_template('item_details.html', item=menu, user=user, reviews = reviews)
+
+@app.route('/edit_item/<item>', methods=['GET', 'POST'])
+def edit_item_page(item):
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
+    if request.method == 'POST':
+
+        new_name = request.form.get('item_name')
+        new_description = request.form.get('item_description')
+        new_price = request.form.get('item_price')
+
+        est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+        est_id = est.id
+
+        menu_item = MenuItems.query.filter_by(item_name=item, est_id = est_id).first()
+        if not menu_item:
+            return "No se encontró el ítem para editar", 404
+        if new_name:
+            menu_item.item_name = new_name
+        if new_description:
+            menu_item.item_description = new_description
+        if new_price:
+            menu_item.item_price = float(new_price)
+
+        db.session.commit()
+
+        flash('Ítem actualizado con éxito', 'success')
+        return redirect(url_for('item_page', user=session['username'], item=new_name))
+
+    menu_item = MenuItems.query.filter_by(item_name=item).first()
+    if not menu_item:
+        return "No se encontró el ítem para editar", 404
+
+    return render_template('edit_item.html', item=menu_item)
+
+@app.route("/review/<item>", methods=['GET', 'POST'])
+def review_item_page(item):
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
+    menu_item = MenuItems.query.filter_by(item_name=item).first()
+    
+    if not menu_item:
+        return "No se encontró el ítem para editar", 404
+
+    if request.method == 'POST':
+        rating = request.form.get('rating')
+        comment = request.form.get('comment')
+        
+        review = Reviews(
+            user_id=session["user_id"],
+            menu_id=menu_item.menu_id,
+            review_rating=rating,
+            review_comment=comment
+        )
+        
+        db.session.add(review)
+        db.session.commit()
+        
+        flash('Reseña creada con éxito', 'success')
+        return redirect(url_for('folder_page', user=session['username'], folder="Visitados"))
+
+    return render_template('review_item.html', item=menu_item)
+
+
+@app.route('/create_promotion', methods=['GET', 'POST'])
+def create_promotion_item_page():
+    try:
+        data = decode_token(session['token'])
+        if data['exp'] <= datetime.now(timezone.utc).timestamp():
+            #token expired
+            print(session['roto'])
+            return redirect(url_for('Index'))
+    except KeyError:
+        session.clear()
+        flash("No se puede buscar sin loguearte antes ;)", "error")
+        return redirect(url_for('Index'))
+    est = Establishments.query.filter_by(est_owner_id=session['user_id']).first()
+    est_id = est.id
+
+    if request.method == 'POST':
+        menu_item_name = request.form.get('item_name')
+        new_price = request.form.get('item_price')
+
+        menu_item_id = MenuItems.query.filter_by(item_name=menu_item_name, est_id = est_id).first()
+        
+        if not menu_item_id:
+            return f"No se encontró el ítem para editar {menu_item_name} - {new_price} - {est_id} - {session['user_id']}", 404
+
+        menu_id = menu_item_id.menu_id
+        promotion = Promotion(
+            est_id = est_id,
+            menu_id = menu_id,
+            new_price = new_price
+        )
+        db.session.add(promotion)
+        db.session.commit()
+
+        flash('Se creo la promocion', 'success')
+        return redirect(url_for('user_page', user=session['username']))
+
+    menu_items = MenuItems.query.filter_by(est_id=est_id).all()
+    return render_template('create_promotion_item.html', menu_items=menu_items)
 
 
 

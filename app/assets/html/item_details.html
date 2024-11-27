@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalles del Ítem</title>
+</head>
+<body>
+    <h1>Detalles del Ítem</h1>
+    <p><strong>Nombre:</strong> {{ item.item_name }}</p>
+    <p><strong>Descripción:</strong> {{ item.item_description }}</p>
+    <p><strong>Precio:</strong> ${{ item.item_price }}</p>
+
+    <a href="{{ url_for('edit_item_page', item=item.item_name) }}">Editar este ítem</a>
+    <a href="{{ url_for('user_page', user=user) }}">Volver al perfil</a>
+
+    <h1>Reseñas</h1>
+    <ul>
+        {% for review in reviews %}
+            <li>
+                <strong>Calificación:</strong> {{ review.review_rating }}<br>
+                <strong>Comentario:</strong> {{ review.review_comment }}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
