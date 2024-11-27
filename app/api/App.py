@@ -10,7 +10,6 @@ from .models import db, ConfirmedUser, PotentialUser, Folders, Followers, Establ
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
-from flask_mail import Mail, Message
 import os
 import config
 

@@ -9,6 +9,7 @@ from sqlalchemy_utils import database_exists, create_database
 import config
 import sys
 from logging.config import dictConfig
+from .populate_db import populate_table_from_csv
 
 dictConfig({
     'version': 1,
@@ -28,8 +29,6 @@ dictConfig({
 
 app = Flask(__name__, 
             template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../assets/html'), static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../assets/static'))
-
-
 
 app.config.from_object(config.Config)
 if os.environ.get('TESTING') == 'True':
@@ -65,6 +64,11 @@ api.add_namespace(ns_api)
 
 from .models import db, ConfirmedUser, PotentialUser, ProfilePicture, Folders, MenuItems, SavedItems, Reviews, Establishments, Promotion, Followers
 db.init_app(app)
+
 with app.app_context():
-    db.create_all()  
+    db.create_all()
+    static_folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../assets/static')
+    csv_file_path = os.path.join(static_folder_path, 'data/ARCHIVO.csv')
+    populate_table_from_csv(csv_file_path,Establishments,db)
+
 
