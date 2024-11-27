@@ -702,9 +702,11 @@ def item_page(user, item):
     est_id = est.id
     menu = MenuItems.query.filter_by(est_id = est_id, item_name = item ).first()
     if not menu:
-        return "No hay un item con ese nombre", 404
+        return "No hay un item con ese nombre", 
 
-    return render_template('item_details.html', item=menu, user=user)
+    reviews = Reviews.query.filter_by(menu_id = menu.menu_id).all()
+
+    return render_template('item_details.html', item=menu, user=user, reviews = reviews)
 
 @app.route('/edit_item/<item>', methods=['GET', 'POST'])
 def edit_item_page(item):
