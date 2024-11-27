@@ -4,6 +4,7 @@ class DataFrameIterator:
     def __init__(self, filepath):
         self.filepath = filepath
         self.df = pd.read_csv(filepath)
+        self.df = self.df.fillna(0)
         self.index = 0
 
     def __iter__(self):
