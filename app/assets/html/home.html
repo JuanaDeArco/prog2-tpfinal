@@ -11,13 +11,13 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: 'Roboto', sans-serif;
+            font-family:'Arial', sans-serif;
             background-color: #FAF3DD;
         }
         h1 {
             color: #021c91;
             font-size: 2.5em;
-            font-family: 'Lobster', cursive;
+            font-family: 'Arial', sans-serif;
         }
         p {
             font-size: 1.2em;
@@ -100,6 +100,7 @@
 <body>
     <div>
         <h1>Bienvenido a la Página de Inicio</h1>
+        
         {% if user_type == 'P' %}
             <p>¡Eres un USUARIO! Aquí están tus opciones:</p>
             {% if session['username'] %}
@@ -131,6 +132,21 @@
             <a href="/logout">Logout</a>
             <input type="submit" value="Buscar">
         </form>
+
+        {% if promotions %}
+            <h2>Promociones Disponibles</h2>
+            <ul>
+                {% for promo in promotions %}
+                    <li>
+                        <strong>Establecimiento:</strong> {{ promo.est_name }}<br>
+                        <strong>Menú:</strong> {{ promo.item_name }}<br>
+                        <strong>Nuevo Precio:</strong> ${{ promo.new_price }}<br>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No hay promociones disponibles en este momento.</p>
+        {% endif %}
         
     </div>
 </body>

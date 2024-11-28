@@ -414,7 +414,6 @@ class Login(Resource):
         session['Authorization'] = session['token']
         app.logger.debug(f'DEBUG>>>> Login for, {session["user_id"]}, {session["user_type"]}, {session["username"]}')
         return redirect(url_for('home_page'))
-        
 
 @app.route('/home')
 def home_page():
@@ -430,7 +429,24 @@ def home_page():
         return redirect(url_for('Index'))
     app.logger.debug('Estoy en app./home con un GET')
     user_type = session.get("user_type")
-    return render_template('home.html', user_type=user_type)
+
+    follows = Followers.query.filter_by(follower_id = session["user_id"]).all()
+    followed_ids = [follow.followed_id for follow in follows]
+    promos = db.session.query(Promotion, MenuItems, Establishments) \
+            .join(MenuItems, Promotion.menu_id == MenuItems.menu_id) \
+            .join(Establishments, Promotion.est_id == Establishments.id) \
+            .filter(Promotion.est_id.in_(followed_ids)) \
+            .all()
+
+        
+    promociones = [{
+            'promotion': promo[0],
+            'item_name': promo[1].item_name,
+            'est_name': promo[2].est_name,
+            'new_price': promo[0].new_price
+    } for promo in promos]
+
+    return render_template('home.html', user_type=user_type, promotions = promociones, text = data['exp'])
 
 @ns.route("/home")
 class Home(Resource):

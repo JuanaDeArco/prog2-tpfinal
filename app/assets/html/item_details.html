@@ -2,25 +2,98 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalles del Ítem</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #FAF3DD;
+            color: #333;
+        }
+
+        h1 {
+            color: #021c91;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.1em;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .item-details, .reviews {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
+        .item-details a, .reviews a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: white;
+            background-color: #021c91;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+
+        .item-details a:hover, .reviews a:hover {
+            background-color: #003366;
+        }
+
+        .reviews ul {
+            padding: 0;
+            list-style-type: none;
+        }
+
+        .reviews li {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .reviews strong {
+            color: #021c91;
+        }
+    </style>
 </head>
 <body>
     <h1>Detalles del Ítem</h1>
-    <p><strong>Nombre:</strong> {{ item.item_name }}</p>
-    <p><strong>Descripción:</strong> {{ item.item_description }}</p>
-    <p><strong>Precio:</strong> ${{ item.item_price }}</p>
+    
+    <div class="item-details">
+        <p><strong>Nombre:</strong> {{ item.item_name }}</p>
+        <p><strong>Descripción:</strong> {{ item.item_description }}</p>
+        <p><strong>Precio:</strong> ${{ item.item_price }}</p>
 
-    <a href="{{ url_for('edit_item_page', item=item.item_name) }}">Editar este ítem</a>
-    <a href="{{ url_for('user_page', user=user) }}">Volver al perfil</a>
+        <a href="{{ url_for('edit_item_page', item=item.item_name) }}">Editar este ítem</a>
+        <a href="{{ url_for('user_page', user=user) }}">Volver al perfil</a>
+    </div>
 
-    <h1>Reseñas</h1>
-    <ul>
-        {% for review in reviews %}
-            <li>
-                <strong>Calificación:</strong> {{ review.review_rating }}<br>
-                <strong>Comentario:</strong> {{ review.review_comment }}
-            </li>
-        {% endfor %}
-    </ul>
+    <div class="reviews">
+        <h2>Reseñas</h2>
+        <ul>
+            {% for review in reviews %}
+                <li>
+                    <strong>Calificación:</strong> {{ review.review_rating }}<br>
+                    <strong>Comentario:</strong> {{ review.review_comment }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 </body>
 </html>

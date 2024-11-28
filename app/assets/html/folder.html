@@ -4,18 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ folder_name }}</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #FAF3DD;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #021c91;
+            font-size: 3em;
+            font-family: 'Arial', sans-serif;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            width: 100%;
+            max-width: 600px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul li {
+            background: white;
+            border: 1px solid #D9D2B6;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        ul li p {
+            margin: 5px 0;
+            color: #333;
+            font-size: 1em;
+        }
+
+        ul li span {
+            font-size: 0.9em;
+            color: #666;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        ul li a button {
+            background-color: #021c91;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        ul li a button:hover {
+            background-color: #003366;
+        }
+
+        a {
+            margin: 15px 10px;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: white;
+            background-color: #021c91;
+            border-radius: 5px;
+            font-size: 1em;
+            display: inline-block;
+        }
+
+        a:hover {
+            background-color: #003366;
+        }
+
+        .flash-messages {
+            list-style: none; 
+            padding: 10px;
+            margin-bottom: 20px;
+            color: #721c24; 
+            background-color: #f8d7da; 
+            border: 1px solid #f5c6cb; 
+            border-radius: 5px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .flash-messages li {
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+    </style>
 </head>
 <body>
-    <h1>Carpeta: {{ folder_name }}</h1>
+    <h1>{{ folder_name }}</h1>
     <ul>
         {% for item in items %}
             <li>
-                <p>{{ item.item.item_name }}</p>
+                <p><strong>{{ item.item.item_name }}</strong></p>
                 <p>{{ item.item.item_description }}</p>
-                <p>${{ item.item.item_price }}</p>
-                <li>
+                <p><strong>Precio:</strong> ${{ item.item.item_price }}</p>
+                <div>
                     {% if item.has_review %}
-                        <span>(Reseña: {{ item.review_rating }})</span>
+                        <span>Reseña: ⭐ {{ item.review_rating }}</span>
                     {% else %}
                         {% if folder_name == 'Visitados' %}
                             <a href="{{ url_for('review_item_page', item=item.item.item_name) }}">
@@ -23,12 +120,13 @@
                             </a>
                         {% endif %}
                     {% endif %}
-                </li>
+                </div>
             </li>
         {% endfor %}
     </ul>
-    <a href="{{ url_for('user_page', user = user) }}">Volver</a>
-    <a href="/logout">Logout</a>
-
+    <div>
+        <a href="{{ url_for('user_page', user=user) }}">Volver</a>
+        <a href="/logout">Logout</a>
+    </div>
 </body>
 </html>
