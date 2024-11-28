@@ -817,7 +817,6 @@ def create_menu_item():
         db.session.commit()
         print(f"Item creado: {item.item_name}, ID: {item.menu_id}, Establecimiento: {item.est_id}")
 
-
         if app.config['TESTING'] == True:
             db.session.add(item)
             db.session.commit()
@@ -968,37 +967,6 @@ def create_promotion_item_page():
 
     menu_items = MenuItems.query.filter_by(est_id=est_id).all()
     return render_template('create_promotion_item.html', menu_items=menu_items)
-
-
-
-# @ns.route('/user/create_folder')
-# class CreateFolder(Resource):
-#     def get(self):
-#         return render_template('create_folder.html')
-
-#     def post(self):
-#         folder_name = request.form.get("folder_name")
-#         exclusive = request.form.get("exclusive")
-
-#         if not all([folder_name, exclusive]):
-#             flash('Todos los campos son obligatorios', 'error')
-#             return redirect(url_for('create_folder_page'))
-
-#         carpeta = Folders(
-#             user_id=session['user_id'],
-#             folder_name=folder_name,
-#             editable=True,
-#             exclusive=bool(exclusive)
-#         )
-
-#         db.session.add(carpeta)
-#         db.session.commit()
-
-#         if app.config['TESTING'] == True:
-#             db.session.add(carpeta)
-#             db.session.commit()
-
-#         return redirect(url_for('user_page', user=session['username']))
 
 
 ##----------------------------------------------------------------------------------------
