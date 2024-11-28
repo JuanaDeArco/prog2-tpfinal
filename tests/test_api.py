@@ -102,7 +102,7 @@ def test_index(client):
     """
     response = client.get('/api/meriendas/')
     assert response.status_code == 200
-    assert response.json == {'hotel': 'trivago'}
+    assert response.json == {"merendar":"bizcho"}
 
 def test_homepage(client):
     """

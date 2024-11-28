@@ -4,7 +4,6 @@ Este es el codigo de la api
 from flask import render_template, request, redirect, url_for, jsonify, session, flash, current_app
 from flask_restx import Api, Resource, fields, Namespace
 from . import api, app
-from app.src import Roles
 from .Auth import decode_token, generate_token, token_required
 from .models import db, ConfirmedUser, PotentialUser, Folders, Followers, Establishments, MenuItems, SavedItems,Reviews, Promotion
 from datetime import datetime, timezone
@@ -33,12 +32,6 @@ userList = api.model(
     }
 )
 
-# Diccionario para mapear opciones visibles a roles internos
-role_mapping = {
-    "Personal": Roles.PersonRole,
-    "Gastronómico": Roles.GastroRole
-}
-
 parser = api.parser()
 parser.add_argument(
     "username", type=str, required=True, help="usuario", location="form"
@@ -49,9 +42,7 @@ parser.add_argument(
 parser.add_argument(
     "email", type=str, required=True, help="correo", location="form"
 )
-parser.add_argument(
-    "role", type=str, required=False, help="Rol", location="form", choices=list(role_mapping.keys())
-)
+
 
 @app.route('/routes')
 def show_routes():
@@ -72,7 +63,7 @@ def Index():
 @ns.doc(description="Este seria un endpoint normal")
 class Index(Resource):
     def get(self):
-        return jsonify({"hotel":"trivago"})
+        return jsonify({"merendar":"bizcho"})
 
 @app.route('/select')
 def register_select():
@@ -969,37 +960,12 @@ def create_promotion_item_page():
     menu_items = MenuItems.query.filter_by(est_id=est_id).all()
     return render_template('create_promotion_item.html', menu_items=menu_items)
 
-
-
-# @ns.route('/user/create_folder')
-# class CreateFolder(Resource):
-#     def get(self):
-#         return render_template('create_folder.html')
-
-#     def post(self):
-#         folder_name = request.form.get("folder_name")
-#         exclusive = request.form.get("exclusive")
-
-#         if not all([folder_name, exclusive]):
-#             flash('Todos los campos son obligatorios', 'error')
-#             return redirect(url_for('create_folder_page'))
-
-#         carpeta = Folders(
-#             user_id=session['user_id'],
-#             folder_name=folder_name,
-#             editable=True,
-#             exclusive=bool(exclusive)
-#         )
-
-#         db.session.add(carpeta)
-#         db.session.commit()
-
-#         if app.config['TESTING'] == True:
-#             db.session.add(carpeta)
-#             db.session.commit()
-
-#         return redirect(url_for('user_page', user=session['username']))
-
+@ns.route('/salud')
+@ns.doc('Revisa si la api esta encendida y si la base de datos tiene una session abierta')
+class HealthCheck(Resource):
+    def get(self):
+        return {'api': 'Ando bien, vos?',
+                'db_active': db.session.is_active}
 
 ##----------------------------------------------------------------------------------------
 # UTILS
