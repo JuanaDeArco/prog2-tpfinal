@@ -1,12 +1,8 @@
 name: ci
 
 on:
-  push:
-    branches: [test/ci]
-  pull_request:
-    branches: [test/ci]
-#  release:
-#    types: [published]
+ release:
+   types: [published]
 # Este Workflow se ejecutaria cada vez que querramos hacer un "release". Actualmente de la forma que esta configurado el repo
 # no va a andar, pero si armamos un release (https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
 # podemos pushear esto a dockerhub. 
