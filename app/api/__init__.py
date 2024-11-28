@@ -68,9 +68,9 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
     static_folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../assets/static')
-    csv_file_path = os.path.join(static_folder_path, 'data/ARCHIVO.csv')
-    app.logger.debug('Meto datos mock de establishments')
-    populate_table_from_csv(csv_file_path,Establishments,db.session)
+    #csv_file_path = os.path.join(static_folder_path, 'data/ARCHIVO.csv')
+    #app.logger.debug('Meto datos mock de establishments')
+    #populate_table_from_csv(csv_file_path,Establishments,db.session)
 
 with open("app/assets/static/arte.txt") as f:
     print(f.read(), flush=True)
