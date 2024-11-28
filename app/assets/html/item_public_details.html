@@ -2,29 +2,149 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalles del Ítem</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #FAF3DD;
+            color: #021c91;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-family: 'Lobster', cursive;
+            margin-bottom: 20px;
+        }
+
+        .item-details {
+            background: white;
+            border: 1px solid #D9D2B6;
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .item-details p {
+            margin: 10px 0;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .item-details strong {
+            color: #003366;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        form button {
+            background-color: #021c91;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        form button:hover {
+            background-color: #003366;
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        ul li {
+            background: white;
+            border: 1px solid #D9D2B6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            font-size: 1em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        ul li strong {
+            display: block;
+            color: #003366;
+            margin-bottom: 5px;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            background-color: #FAF3DD;
+            color: #021c91;
+            border: 1px solid #D9D2B6;
+            border-radius: 5px;
+            text-decoration: none;
+            padding: 10px;
+            font-size: 1em;
+            max-width: 200px;
+            margin: 10px auto;
+        }
+
+        a:hover {
+            background-color: #D9D2B6;
+            color: #003366;
+        }
+    </style>
 </head>
 <body>
     <h1>Detalles del Ítem</h1>
-    <p><strong>Nombre:</strong> {{ item.item_name }}</p>
-    <p><strong>Descripción:</strong> {{ item.item_description }}</p>
-    <p><strong>Precio:</strong> ${{ item.item_price }}</p>
+
+    <div class="item-details">
+        <p><strong>Nombre:</strong> {{ item.item_name }}</p>
+        <p><strong>Descripción:</strong> {{ item.item_description }}</p>
+        <p><strong>Precio:</strong> ${{ item.item_price }}</p>
+    </div>
 
     <form action="{{ url_for('save_item_page', item=item.item_name, establecimiento=item.est_id) }}" method="get">
         <button type="submit">Guardar Ítem</button>
     </form>
-    <h2>Reseñas</h2>
-    <ul>
-        {% for review in reviews %}
-            <li>
-                <strong>Calificación:</strong> {{ review.review_rating }}<br>
-                <strong>Comentario:</strong> {{ review.review_comment }}
-            </li>
-        {% endfor %}
-    </ul>
 
-    {% if reviews.has_next %}
-        <a href="{{ url_for('item_public_page', user=user, item=item.item_name, page=reviews.next_num) }}">Mostrar más reseñas</a>
+    <h2>Reseñas</h2>
+    {% if reviews %}
+        <ul>
+            {% for review in reviews %}
+                <li>
+                    <strong>Calificación:</strong> {{ review.review_rating }}
+                    <strong>Comentario:</strong> {{ review.review_comment }}
+                </li>
+            {% endfor %}
+        </ul>
+
+        {% if reviews.has_next %}
+            <a href="{{ url_for('item_public_page', user=user, item=item.item_name, page=reviews.next_num) }}">
+                Mostrar más reseñas
+            </a>
+        {% endif %}
+    {% else %}
+        <p>No hay reseñas disponibles para este ítem.</p>
     {% endif %}
 </body>
 </html>

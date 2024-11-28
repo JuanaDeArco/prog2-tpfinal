@@ -2,106 +2,98 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guardar Ítem</title>
-</head>
-<style>
-    body {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        font-family: 'Roboto', sans-serif;
-        background:
-            #FAF3DD;
-        background-size: cover;
-    }
-    h1 {
-        color:  #021c91;
-        font-size: 2em;
-        margin-bottom: 10px;
-    }
-    .form-container {
-        background-color: #021c91;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        width: 600px;
-        text-align: center;
-        box-sizing: border-box;
-    }
-    form {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        align-items: center;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    label {
-        margin: 5px 0;
-        color:  #021c91;
-        font-size: 0.9em;
-        text-align: left;
-    }
-    input[type="text"],
-    input[type="password"],
-    input[type="email"],
-    input[type="date"],
-    select {
-        margin-bottom: 10px;
-        padding: 6px;
-        font-size: 0.9em;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    input[type="submit"] {
-        padding: 8px 20px;
-        font-size: 1em;
-        color: #1C0F13;
-        background-color: #FAF3DD;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        grid-column: span 2;  
-    }
-    input[type="submit"]:hover {
-        background-color: #D9D2B6;
-    }
-    .half-column {
-        display: flex;
-        flex-direction: column;
-    }.flash-messages {
-        list-style: none; 
-        padding: 0;
-        margin: 0;
-        color: red; 
-        background-color: #f8d7da; 
-        border: 1px solid #f5c6cb; 
-        border-radius: 5px;
-        padding: 10px;
-        margin-bottom: 20px;
-    }
-    .flash-messages li {
-        margin-bottom: 5px;
-        font-size: 1em;
-    }
-</style>
-<body>
-    <h1>Guardar Ítem: {{ item }}</h1>
-    <p>Establecimiento: {{ establecimiento }}</p>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #FAF3DD;
+            color: #021c91;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
 
-    <form action="" method="post">
-        <label for="folder">Selecciona una carpeta:</label>
-        <select name="folder_id" id="folder" required>
-            {% for folder in folders %}
-                <option value="{{ folder.folder_id }}">{{ folder.folder_name }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit">Guardar</button>
-    </form>
+        h1 {
+            font-size: 2.5em;
+            font-family: 'Arial', sans-serif;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .form-container {
+            background: white;
+            border: 1px solid #D9D2B6;
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            border: 1px solid white;
+            border-radius: 5px;
+            background-color:white;
+            color: #021c91;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #003366;
+        }
+
+        button {
+            background-color: #021c91;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #003366;
+        }
+    </style>
+</head>
+<body>
+    <h1>Guardar Ítem</h1>
+    <p><strong>Ítem:</strong> {{ item }}</p>
+
+    <div class="form-container">
+        <form action="" method="post">
+            <label for="folder">Selecciona una carpeta:</label>
+            <select name="folder_id" id="folder" required>
+                {% for folder in folders %}
+                    <option value="{{ folder.folder_id }}">{{ folder.folder_name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Guardar</button>
+        </form>
+    </div>
 </body>
 </html>
