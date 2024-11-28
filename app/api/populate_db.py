@@ -26,7 +26,7 @@ def populate_table_from_csv(csv_path, model_class, db_session):
                 categoria=row['categoria'],
                 cocina=row['cocina'],
                 ambientacion=row['ambientacion'],
-                telefono=str(row['telefono']).replace(' ','').split('/')[0],
+                telefono=0,
                 mail=row['mail'],
                 horario=row['horario'],
                 calle_nombre=row['calle_nombre'],
@@ -43,9 +43,7 @@ def populate_table_from_csv(csv_path, model_class, db_session):
         except Exception as e:
             print(f'Falla {row} | {e} ')
             continue
-    try:
-        db_session.commit()
-    except Exception as e:
-        pass
+    db_session.commit()
+
 
         
