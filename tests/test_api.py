@@ -3,6 +3,7 @@ import pytest
 from app.api.models import *
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import url_for
+from app.api.Auth import *
 
 @pytest.fixture
 def client():
@@ -33,6 +34,14 @@ def test_register_personal_post_all_fields_valid(client):
     response = client.post('/api/meriendas/personal', data=data)
 
     assert response.status_code == 302
+
+def test_jwt_token():
+    user = 'testuser'
+    token = generate_token(user)
+    assert token is not None
+    decoded = decode_token(token)
+    assert decoded['username'] == user
+    assert decoded['exp'] > 0
 
 def test_confirm(client):
     """

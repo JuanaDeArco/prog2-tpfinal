@@ -25,9 +25,9 @@ def decode_token(token):
         data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
         return data
     except jwt.ExpiredSignatureError:
-        return 'Token expirado. Está rancio!'
+        return {'username':'expired','exp':0}
     except jwt.InvalidTokenError:
-        return 'Token inválido. Esta super rancio!'
+        return {'username':'invalid','exp':0}
 
 
 def token_required(f):
