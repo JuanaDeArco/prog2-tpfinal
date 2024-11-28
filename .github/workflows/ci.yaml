@@ -66,5 +66,5 @@ jobs:
             context: .
             file: ./db/Dockerfile
             build-args: PORT=8080
-            tags: ${{ steps.meta.outputs.tags }}
-            labels: ${{ steps.meta.outputs.labels }}
+            tags: ${{ steps.meta.outputs.tags }}-db
+            labels: ${{ steps.meta.outputs.labels }}-db
