@@ -32,6 +32,7 @@ services:
       SECURITY_PASSWORD_SALT: ${SECURITY_PASSWORD_SALT}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       SECRET_KEY: ${SECRET_KEY}
+    restart: on-failure
     networks:
       - merendar-network
 
