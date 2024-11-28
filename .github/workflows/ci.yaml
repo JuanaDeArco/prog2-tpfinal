@@ -1,8 +1,12 @@
 name: ci
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [test/ci]
+  pull_request:
+    branches: [test/ci]
+#  release:
+#    types: [published]
 # Este Workflow se ejecutaria cada vez que querramos hacer un "release". Actualmente de la forma que esta configurado el repo
 # no va a andar, pero si armamos un release (https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
 # podemos pushear esto a dockerhub. 
@@ -43,13 +47,24 @@ jobs:
         with:
           python-version: '3.13'
       - 
-        name: Buildear la imagen de Docker
-        id: push
+        name: Buildear la imagen de Docker de la API
+        id: push-api
         uses: docker/build-push-action@v6
         with:
           push: true
           context: .
-          file: ./jwtlog/Dockerfile
+          file: ./Dockerfile
           build-args: PORT=8080
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      -
+          name: Buildear la imagen de Docker de la Db
+          id: push-db
+          uses: docker/build-push-action@v6
+          with:
+            push: true
+            context: .
+            file: ./db/Dockerfile
+            build-args: PORT=8080
+            tags: ${{ steps.meta.outputs.tags }}-db
+            labels: ${{ steps.meta.outputs.labels }}-db
